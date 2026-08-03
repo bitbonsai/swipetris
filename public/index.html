@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Press+Start+2P&display=swap">
-  <link rel="stylesheet" href="/landing.css?v=13">
+  <link rel="stylesheet" href="/landing.css?v=14">
 </head>
 <body>
 
@@ -48,7 +48,10 @@
         <p class="tagline">SWIPE. STACK. REPEAT.</p>
         <p class="sub">3D falling blocks built for your thumb.<br>No app store. No account. No ads.</p>
 
-        <a class="cta" href="/play#go"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY NOW</span></a>
+        <div class="cta-row">
+          <a class="cta" href="/play#go"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY NOW</span></a>
+          <a class="cta-ghost" href="/scores">SCORES</a>
+        </div>
         <p class="cta-note">free forever &middot; nothing to install</p>
 
         <div class="gestures">
@@ -165,8 +168,8 @@
     </div>
   </footer>
 
-  <script type="module" src="/landing.js?v=13"></script>
-  <script type="module" src="/bg.js?v=13"></script>
+  <script type="module" src="/landing.js?v=14"></script>
+  <script type="module" src="/bg.js?v=14"></script>
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
       navigator.serviceWorker.register("/sw.js");

@@ -140,6 +140,34 @@ main, footer { position: relative; z-index: 1; }
   animation: rise 0.7s 0.16s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
 
+.cta-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: max-content;
+  margin-top: 36px;
+  animation: rise 0.7s 0.24s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.cta-row .cta { margin-top: 0; animation: none; }
+.cta-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 16px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 55%, var(--line));
+  border-radius: 10px;
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 5%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 4px 12px rgba(0, 0, 0, 0.22);
+  font-family: var(--pixel);
+  font-size: clamp(9px, 2.4vw, 12px);
+  line-height: 1;
+  text-decoration: none;
+  transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+}
+.cta-ghost:hover { transform: translateY(-1px); border-color: var(--cyan); background: color-mix(in srgb, var(--cyan) 11%, transparent); }
+.cta-ghost:active { transform: translateY(2px); }
+.cta-ghost:focus-visible { outline: 3px solid var(--yellow); outline-offset: 4px; }
 .cta {
   display: inline-flex;
   align-items: center;
