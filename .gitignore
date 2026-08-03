@@ -2,3 +2,4 @@ node_modules/
 swipetris.db
 .env
 .env.*
+.wrangler/
