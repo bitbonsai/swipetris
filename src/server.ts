@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
 import { z } from "zod";
 import { db, scores } from "./db";
-import { desc, and, eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 const app = new Hono();
 
@@ -63,43 +63,49 @@ app.post("/api/score", async (c) => {
   const s = parsed.data;
   if (!plausible(s)) return c.json({ error: "score rejected" }, 422);
   await db.insert(scores).values({ ...s, createdAt: Date.now() });
-  const [{ rank }] = await db
-    .select({ rank: sql<number>`count(*) + 1` })
-    .from(scores)
-    .where(
-      and(
-        eq(scores.mode, s.mode),
-        eq(scores.seed, s.seed),
-        sql`${scores.score} > ${s.score}`,
-      ),
-    );
+  // rank against each other player's best run (one slot per name)
+  const [{ rank }] = await db.all<{ rank: number }>(sql`
+    SELECT count(*) + 1 AS rank FROM (
+      SELECT name, max(score) AS best FROM scores
+      WHERE mode = ${s.mode} AND seed = ${s.seed} AND name != ${s.name}
+      GROUP BY name
+      HAVING best > ${s.score}
+    )
+  `);
   return c.json({ ok: true, rank });
 });
 
 app.get("/api/leaderboard", async (c) => {
   const mode = c.req.query("mode") ?? "daily";
   const seed = Number(c.req.query("seed") ?? "0");
-  const rows = await db
-    .select()
-    .from(scores)
-    .where(and(eq(scores.mode, mode), eq(scores.seed, seed)))
-    .orderBy(desc(scores.score))
-    .limit(20);
+  // best run per name — one leaderboard slot per player
+  const rows = await db.all(sql`
+    SELECT id, name, mode, seed, score, lines, level, pieces
+    FROM scores s
+    WHERE mode = ${mode} AND seed = ${seed}
+      AND score = (SELECT max(score) FROM scores WHERE mode = s.mode AND seed = s.seed AND name = s.name)
+    GROUP BY name
+    ORDER BY score DESC
+    LIMIT 20
+  `);
   return c.json({ leaderboard: rows });
 });
 
-// no-store on HTML so dev iterations never serve stale pages
+// no-store on HTML, revalidate js/css — stale app.js against fresh HTML breaks module imports
 app.use("*", async (c, next) => {
   await next();
   const ct = c.res.headers.get("content-type") ?? "";
   if (ct.includes("text/html")) {
     c.res.headers.set("Cache-Control", "no-store");
+  } else if (ct.includes("javascript") || ct.includes("text/css")) {
+    c.res.headers.set("Cache-Control", "no-cache");
   }
 });
 
 app.use("/*", serveStatic({ root: "./public" }));
 app.get("/", serveStatic({ path: "./public/index.html" }));
 app.get("/play", serveStatic({ path: "./public/play.html" }));
+app.get("/about", serveStatic({ path: "./public/about.html" }));
 
 const port = Number(process.env.PORT ?? 3000);
 console.log(`swipetris on http://localhost:${port}`);

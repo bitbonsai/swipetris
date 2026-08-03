@@ -30,10 +30,12 @@ export const THEMES = {
   },
   pastels: {
     label: "Pastels",
-    colors: { I: 0xaee6e6, O: 0xfbe7a1, T: 0xdcc5f0, S: 0xc2ecc9, Z: 0xf6c6c6, J: 0xbcd6f5, L: 0xf7d6b8 },
+    colors: { I: 0x7fd0d0, O: 0xf5d375, T: 0xc9a3e8, S: 0x93d9a3, Z: 0xef9f9f, J: 0x92b9ec, L: 0xf0bb8a },
     bg: 0xf6f2ec,
-    grid: 0xded6c9,
+    grid: 0xd8cfc0,
     accent: 0xe8875a,
+    keyIntensity: 1.0, // dark-theme lighting overexposes pale colors
+    blockEmissive: 0.34,
     css: "theme-pastels",
   },
   catppuccin: {
@@ -67,6 +69,7 @@ export function setTheme(name) {
   if (scene) {
     scene.background = new THREE.Color(theme.bg);
     if (scene.userData.rim) scene.userData.rim.color.setHex(theme.accent);
+    if (scene.userData.key) scene.userData.key.intensity = theme.keyIntensity ?? 1.6;
     syncMeshes();
     drawNext();
   }
@@ -121,9 +124,19 @@ const sfx = {
     for (let i = 0; i <= Math.min(n, 3); i++) tone(notes[i], 0.09, "square", 0.04, i * 0.07);
   },
   over: () => [392, 330, 262, 196].forEach((f, i) => tone(f, 0.13, "triangle", 0.05, i * 0.13)),
+  levelup: () => [330, 415, 494, 659].forEach((f, i) => tone(f, 0.08, "square", 0.035, i * 0.06)),
 };
 function buzz(ms) {
   try { navigator.vibrate?.(ms); } catch {}
+}
+
+// space-invaders heartbeat: every gravity step thumps, pitched per piece,
+// alternating two tones — and it naturally speeds up with the level
+const HEART = { I: 110, O: 98, T: 104, S: 92, Z: 88, J: 82, L: 118 };
+let heartFlip = false;
+function heartbeat(type) {
+  heartFlip = !heartFlip;
+  tone((HEART[type] ?? 100) * (heartFlip ? 1 : 0.84), 0.07, "triangle", 0.05);
 }
 
 // ---------- game state ----------
@@ -132,6 +145,15 @@ let score, lines, level, pieces, startTime, gameOver;
 let dropAcc = 0, lastTick = 0, running = false;
 const LOCK_DELAY = 300;
 let lockAt = 0, lockResets = 0;
+let paused = false;
+export function setPaused(v) {
+  if (paused === v) return;
+  paused = v;
+  if (running && !v) {
+    if (lockAt) lockAt = performance.now(); // don't insta-lock after resume
+    dropAcc = 0;
+  }
+}
 
 function freshBag() {
   const b = [...TYPES];
@@ -184,7 +206,7 @@ function resetLockDelay() {
   }
 }
 function move(dx) {
-  if (!running || !current) return;
+  if (!running || !current || paused) return;
   const m = matrixOf(current);
   if (!collides(m, current.x + dx, current.y)) {
     current.x += dx;
@@ -194,7 +216,7 @@ function move(dx) {
   }
 }
 function rotate() {
-  if (!running || !current) return;
+  if (!running || !current || paused) return;
   const m = rotateCW(matrixOf(current));
   for (const kick of [0, 1, -1, 2, -2]) {
     if (!collides(m, current.x + kick, current.y)) {
@@ -208,11 +230,12 @@ function rotate() {
   }
 }
 function softDropStep() {
-  if (!running || !current) return false;
+  if (!running || !current || paused) return false;
   const m = matrixOf(current);
   if (!collides(m, current.x, current.y + 1)) {
     current.y += 1;
     score += 1;
+    heartbeat(current.type);
     syncMeshes();
     emitStats();
     return true;
@@ -220,7 +243,7 @@ function softDropStep() {
   return false; // grounded — lock delay takes over
 }
 function hardDrop() {
-  if (!running || !current) return;
+  if (!running || !current || paused) return;
   const m = matrixOf(current);
   let d = 0;
   while (!collides(m, current.x, current.y + 1)) { current.y++; d++; }
@@ -290,7 +313,9 @@ function finishClear() {
   const pts = [0, 100, 300, 500, 800][cleared] * level;
   lines += cleared;
   score += pts;
-  level = Math.floor(lines / 10) + 1;
+  const newLevel = Math.floor(lines / 10) + 1;
+  if (newLevel > level) sfx.levelup();
+  level = newLevel;
   shake(0.9 + cleared * 0.5);
   sfx.clear(cleared);
   buzz(cleared > 1 ? 60 : 30);
@@ -351,9 +376,10 @@ function initScene(container) {
 
   // 3-point lighting: hemisphere fill + key + colored rim
   scene.add(new THREE.HemisphereLight(0xffffff, 0x222233, 0.55));
-  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  const key = new THREE.DirectionalLight(0xffffff, theme.keyIntensity ?? 1.6);
   key.position.set(6, 18, 12);
   scene.add(key);
+  scene.userData.key = key;
   const rim = new THREE.DirectionalLight(theme.accent, 0.9);
   rim.position.set(-9, 3, -7);
   scene.add(rim);
@@ -423,7 +449,7 @@ function material(type, ghost = false) {
     matCache.set(key, new THREE.MeshStandardMaterial({
       color: c, roughness: 0.28, metalness: 0.12,
       map: ghost ? null : gradientTexture(),
-      emissive: c, emissiveIntensity: ghost ? 0 : 0.22,
+      emissive: c, emissiveIntensity: ghost ? 0 : (theme.blockEmissive ?? 0.22),
       transparent: ghost, opacity: ghost ? 0.16 : 1,
     }));
   }
@@ -498,7 +524,7 @@ function tick(now) {
     for (const mesh of clearing.meshes) mesh.scale.setScalar(Math.max(0.001, 1 - k * k));
     if (k >= 1) finishClear();
   }
-  if (running && current) {
+  if (running && current && !paused) {
     dropAcc += now - lastTick;
     const m = matrixOf(current);
     if (collides(m, current.x, current.y + 1)) {
@@ -514,6 +540,7 @@ function tick(now) {
       if (dropAcc >= dropInterval()) {
         dropAcc = 0;
         current.y += 1;
+        heartbeat(current.type);
         syncMeshes();
       }
     }
@@ -596,6 +623,8 @@ function initInput(el) {
   const cellPx = () => el.clientWidth / COLS;
 
   el.addEventListener("pointerdown", (e) => {
+    // overlays and the settings sheet live inside el — don't steal their clicks
+    if (!running || paused || e.target.closest("#sheet, #sheet-backdrop")) return;
     el.setPointerCapture(e.pointerId);
     start = { x: e.clientX, y: e.clientY, t: performance.now() };
     movedX = 0; softDropping = false;
@@ -647,8 +676,36 @@ function initInput(el) {
 }
 
 // ---------- boot ----------
+// desktop affordance: translucent circle cursor with a swoosh tail while swiping
+function initCursor(el) {
+  if (!window.matchMedia("(pointer: fine)").matches) return;
+  const dot = document.createElement("div");
+  dot.id = "cursor-dot";
+  el.appendChild(dot);
+  let down = false;
+  el.addEventListener("pointermove", (e) => {
+    const r = el.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    dot.style.left = x + "px";
+    dot.style.top = y + "px";
+    if (down) {
+      const t = document.createElement("div");
+      t.className = "cursor-trail";
+      t.style.left = x + "px";
+      t.style.top = y + "px";
+      el.appendChild(t);
+      setTimeout(() => t.remove(), 380);
+    }
+  });
+  el.addEventListener("pointerdown", () => { down = true; dot.classList.add("show", "down"); });
+  window.addEventListener("pointerup", () => { down = false; dot.classList.remove("down"); });
+  el.addEventListener("pointerenter", () => dot.classList.add("show"));
+  el.addEventListener("pointerleave", () => dot.classList.remove("show"));
+}
+
 export function boot() {
   initScene(document.getElementById("game-wrap"));
   initInput(document.getElementById("game-wrap"));
+  initCursor(document.getElementById("game-wrap"));
   window.addEventListener("themechange", invalidateMaterials);
 }

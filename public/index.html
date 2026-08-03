@@ -6,6 +6,12 @@
   <title>swipetris — swipe. stack. repeat.</title>
   <meta name="description" content="3D falling blocks built for your thumb. Free forever, works offline, no app store. Swipe to move, tap to rotate, flick to drop.">
   <meta name="theme-color" content="#0f1115">
+  <meta property="og:title" content="swipetris — swipe. stack. repeat.">
+  <meta property="og:description" content="The daily falling-blocks challenge, built for your thumb. Free forever, works offline, no app store.">
+  <meta property="og:image" content="https://swipetris.com/og.png">
+  <meta property="og:url" content="https://swipetris.com/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,13 +22,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Press+Start+2P&display=swap">
-  <link rel="stylesheet" href="/landing.css">
+  <link rel="stylesheet" href="/landing.css?v=12">
 </head>
 <body>
 
   <div class="scanlines" aria-hidden="true"></div>
 
   <main>
+
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee marquee-top" aria-hidden="true">
+      <div class="marquee-track">
+        <span>FREE FOREVER &#9733; NO ADS &#9733; WORKS OFFLINE &#9733; NO APP STORE &#9733; SAVES TO HOME SCREEN &#9733; TOP-5 LEADERBOARD &#9733;&nbsp;</span>
+        <span>FREE FOREVER &#9733; NO ADS &#9733; WORKS OFFLINE &#9733; NO APP STORE &#9733; SAVES TO HOME SCREEN &#9733; TOP-5 LEADERBOARD &#9733;&nbsp;</span>
+      </div>
+    </div>
 
     <!-- ============ HERO ============ -->
     <section class="hero">
@@ -60,26 +74,29 @@
           <div class="screen">
             <div class="demo-hud">
               <div class="demo-score"><span>SCORE</span><b id="demo-score">000000</b></div>
-              <div class="demo-hiscore"><span>HI SCORE</span><b>128400</b></div>
+              <div class="demo-hiscore"><span>DAY BEST</span><b>128400</b></div>
+              <div class="demo-nextwrap"><span>NEXT</span><div id="demo-next"></div></div>
             </div>
             <div class="demo-stage">
               <div id="demo-board"></div>
               <div id="demo-thumb"></div>
               <div id="demo-pops"></div>
             </div>
+            <div id="demo-sheet" aria-hidden="true">
+              <div class="ds-grabber"></div>
+              <div class="ds-row" style="grid-template-columns: 1fr">
+                <div class="ds-opt"><span>SOUND</span><b>ON</b></div>
+              </div>
+              <span class="ds-label">THEME</span>
+              <div class="ds-tiles">
+                <i class="t-colorful active"></i><i class="t-pastels"></i><i class="t-cat"></i><i class="t-crt"></i>
+              </div>
+            </div>
           </div>
         </div>
         <div class="phone-shadow"></div>
       </div>
     </section>
-
-    <!-- ============ MARQUEE ============ -->
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee-track">
-        <span>FREE FOREVER &#9733; NO ADS &#9733; WORKS OFFLINE &#9733; NO APP STORE &#9733; SAVES TO HOME SCREEN &#9733; TOP-5 LEADERBOARD &#9733;&nbsp;</span>
-        <span>FREE FOREVER &#9733; NO ADS &#9733; WORKS OFFLINE &#9733; NO APP STORE &#9733; SAVES TO HOME SCREEN &#9733; TOP-5 LEADERBOARD &#9733;&nbsp;</span>
-      </div>
-    </div>
 
     <!-- ============ FEATURES ============ -->
     <section class="features">
@@ -128,15 +145,26 @@
 
   </main>
 
+  <div id="scroll-cue" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    <span>SCROLL</span>
+  </div>
+
   <footer>
-    <span>swipetris</span>
-    <span class="dot">&middot;</span>
-    <span>no cookies, no tracking</span>
-    <span class="dot">&middot;</span>
-    <a href="/play">play</a>
+    <div class="foot-line">
+      <span>swipetris</span>
+      <span class="dot">&middot;</span>
+      <span>no cookies, no tracking</span>
+      <span class="dot">&middot;</span>
+      <a href="/play">play</a>
+    </div>
+    <div class="foot-line credit">
+      made with <span aria-label="love">&hearts;</span> by <a class="quiet" href="https://bitbonsai.com">bitbonsai</a>
+    </div>
   </footer>
 
-  <script type="module" src="/landing.js"></script>
+  <script type="module" src="/landing.js?v=12"></script>
+  <script type="module" src="/bg.js?v=12"></script>
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
       navigator.serviceWorker.register("/sw.js");

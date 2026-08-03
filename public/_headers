@@ -12,3 +12,9 @@
 
 /sw.js
   Cache-Control: no-cache
+
+/about
+  Cache-Control: no-store
+
+/about.html
+  Cache-Control: no-store

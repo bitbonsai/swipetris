@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>swipetris</title>
   <meta name="theme-color" content="#0f1115">
+  <meta property="og:title" content="swipetris — play the daily">
+  <meta property="og:description" content="Same board for every player on earth. Crack the top 5, punch in your five letters.">
+  <meta property="og:image" content="https://swipetris.com/og.png">
+  <meta property="og:url" content="https://swipetris.com/play">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,10 +21,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Press+Start+2P&display=swap">
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.css?v=12">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
-    import { boot, startGame, setTheme, setMuted, dailySeed } from "/app.js";
+    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed } from "/app.js?v=12";
 
     window.Alpine = Alpine;
     Alpine.data("ui", () => ({
@@ -34,7 +40,7 @@
         shared: false, submitted: false, rankText: "",
         lastResult: null,
         muted: localStorage.getItem("swipetris-muted") === "1",
-        bestTick: 0, newBest: false, countdown: "",
+        bestTick: 0, newBest: false, countdown: "", dayBest: 0, beatDay: false,
 
         get best() {
           this.bestTick;
@@ -44,6 +50,7 @@
         init() {
           setTheme(this.theme);
           setMuted(this.muted);
+          this.$watch("sheet", (open) => setPaused(open));
           const tickCountdown = () => {
             const now = new Date();
             const midnight = new Date(now);
@@ -55,6 +62,7 @@
           setInterval(tickCountdown, 30000);
           window.addEventListener("stats", (e) => {
             this.score = e.detail.score; this.lines = e.detail.lines; this.level = e.detail.level;
+            if (!this.beatDay && this.dayBest > 0 && this.score > this.dayBest) this.beatDay = true;
           });
           window.addEventListener("gameover", async (e) => {
             this.lastResult = e.detail;
@@ -77,6 +85,15 @@
           this.muted = !on;
           setMuted(this.muted);
         },
+        async loadDayBest() {
+          try {
+            const res = await fetch(`/api/leaderboard?mode=daily&seed=${dailySeed()}`);
+            if (res.ok) {
+              const top = (await res.json()).leaderboard[0];
+              if (top && top.score > this.dayBest) this.dayBest = top.score;
+            }
+          } catch {}
+        },
         pickTheme(t) {
           this.theme = t;
           localStorage.setItem("swipetris-theme", t);
@@ -85,6 +102,8 @@
         play() {
           this.state = "playing";
           this.sheet = false;
+          this.beatDay = false;
+          this.loadDayBest();
           startGame();
           if (!this.settingsHintSeen) {
             this.settingsHintSeen = true;
@@ -143,6 +162,10 @@
             <b x-text="score.toLocaleString()">0</b>
             <span><em x-text="lines">0</em> lines · lv <em x-text="level">1</em></span>
           </div>
+          <div class="hud-day" x-show="dayBest > 0" x-cloak>
+            <span>DAY BEST</span>
+            <b :class="{you: beatDay}" x-text="beatDay ? '&#9733; YOU &#9733;' : dayBest.toLocaleString()">0</b>
+          </div>
           <div class="hud-next">
             <span>NEXT</span>
             <canvas id="next-canvas" width="64" height="64"></canvas>
@@ -155,14 +178,27 @@
         </div>
 
         <div class="overlay menu" x-show="state==='menu'" x-transition>
-          <canvas id="logo-canvas" width="192" height="192"></canvas>
+          <div class="brand-block" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div class="menu-title"><span>s</span><span>w</span><span>i</span><span>p</span><span>e</span><span>t</span><span>r</span><span>i</span><span>s</span></div>
           <p class="tagline">swipe. stack. repeat.</p>
-          <button class="big" @click="play()">PLAY DAILY CHALLENGE</button>
+          <button class="big" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY</span></button>
           <p class="menu-meta" x-show="best > 0">BEST <b x-text="best.toLocaleString()"></b></p>
           <p class="menu-meta dim">new daily in <span x-text="countdown"></span></p>
-          <p class="hint">drag to move · tap to rotate · flick down to drop</p>
-          <a class="about-link" href="/">what is swipetris?</a>
+          <div class="gestures">
+            <div class="gesture">
+              <span class="glyph glyph-drag"><i></i></span>
+              <span class="g-label">drag<br><em>move</em></span>
+            </div>
+            <div class="gesture">
+              <span class="glyph glyph-tap"><i></i></span>
+              <span class="g-label">tap<br><em>rotate</em></span>
+            </div>
+            <div class="gesture">
+              <span class="glyph glyph-flick"><i></i></span>
+              <span class="g-label">flick<br><em>drop</em></span>
+            </div>
+          </div>
+          <a class="about-link" href="/about">what is swipetris?</a>
         </div>
 
         <div class="overlay over" x-show="state==='over'" x-transition>
@@ -193,42 +229,55 @@
           </ol>
 
           <div class="over-actions">
-            <button class="big" @click="play()">Play again</button>
-            <button class="ghost" @click="share()" x-text="shared ? 'Copied!' : 'Share score'"></button>
+            <button class="big" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY AGAIN</span></button>
+            <button class="ghost" @click="share()" x-text="shared ? 'COPIED!' : 'SHARE SCORE'"></button>
           </div>
         </div>
-      </div>
-    </main>
 
-    <div id="sheet-backdrop" x-show="sheet" x-transition.opacity @click="sheet = false"></div>
-    <div id="sheet" x-show="sheet"
-      x-transition:enter="sheet-enter"
-      x-transition:enter-start="sheet-hidden"
-      x-transition:enter-end="sheet-shown"
-      x-transition:leave="sheet-leave"
-      x-transition:leave-start="sheet-shown"
-      x-transition:leave-end="sheet-hidden">
-      <div class="sheet-card">
-        <div class="grabber"></div>
-        <div class="sheet-section">
-          <span class="sheet-label">Sound</span>
-          <div class="modes">
-            <button :class="{active: !muted}" @click="setSound(true)">On</button>
-            <button :class="{active: muted}" @click="setSound(false)">Off</button>
-          </div>
+        <div id="sheet-backdrop" x-show="sheet" x-transition.opacity @click="sheet = false"></div>
+        <div id="pause-flag" x-cloak x-show="sheet && state === 'playing'" x-transition.opacity>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+          <span>PAUSED</span>
         </div>
-        <div class="sheet-section">
-          <span class="sheet-label">Theme</span>
-          <div class="theme-grid">
-            <template x-for="t in ['colorful','pastels','catppuccin','crt']" :key="t">
-              <button class="theme-opt" :class="{active: theme===t}" @click="pickTheme(t)">
-                <span class="swatch" :class="t"></span><span x-text="t"></span>
+        <div id="sheet" x-show="sheet"
+          x-transition:enter="sheet-enter"
+          x-transition:enter-start="sheet-hidden"
+          x-transition:enter-end="sheet-shown"
+          x-transition:leave="sheet-leave"
+          x-transition:leave-start="sheet-shown"
+          x-transition:leave-end="sheet-hidden">
+          <div class="sheet-card">
+            <div class="grabber"></div>
+            <div class="sheet-row single">
+              <button class="opt-btn" :class="{active: !muted}" @click="setSound(muted)">
+                <span>SOUND</span><b x-text="muted ? 'OFF' : 'ON'"></b>
               </button>
-            </template>
+            </div>
+            <div class="sheet-section">
+              <span class="sheet-label">THEME &middot; <em x-text="theme"></em></span>
+              <div class="theme-row">
+                <template x-for="t in ['colorful','pastels','catppuccin','crt']" :key="t">
+                  <button class="theme-tile" :class="[t, {active: theme===t}]" @click="pickTheme(t)" :aria-label="'theme: ' + t" :title="t"></button>
+                </template>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <aside id="desk-panel" aria-label="Desktop guide">
+        <span class="panel-label">BUILT FOR THUMBS</span>
+        <img src="/qr.svg" alt="QR code — open swipetris.com on your phone" width="140" height="140">
+        <p class="panel-note">scan to play on your phone,<br>then add it to your home screen</p>
+        <span class="panel-label panel-label-keys">OR PLAY WITH KEYBOARD</span>
+        <ul class="keys">
+          <li><b>&#8592; &#8594;</b> move</li>
+          <li><b>&#8593; / X</b> rotate</li>
+          <li><b>&#8595;</b> soft drop</li>
+          <li><b>SPACE</b> hard drop</li>
+        </ul>
+      </aside>
+    </main>
   </div>
 
   <script>

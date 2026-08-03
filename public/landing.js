@@ -13,6 +13,8 @@ const boardEl = document.getElementById("demo-board");
 const thumbEl = document.getElementById("demo-thumb");
 const popsEl = document.getElementById("demo-pops");
 const scoreEl = document.getElementById("demo-score");
+const sheetEl = document.getElementById("demo-sheet");
+const screenEl = document.querySelector(".screen");
 
 let board, score, cells = [];
 
@@ -64,6 +66,15 @@ function render(piece) {
     }
   if (piece) {
     const m = piece.m;
+    // ghost: where the piece would land
+    let gy = piece.y;
+    while (!collides(m, piece.x, gy + 1)) gy++;
+    for (let y = 0; y < m.length; y++)
+      for (let x = 0; x < m[y].length; x++) {
+        if (!m[y][x]) continue;
+        const by = gy + y, bx = piece.x + x;
+        if (by >= 0) cells[by * COLS + bx].className = `cell on ghost c-${piece.type}`;
+      }
     for (let y = 0; y < m.length; y++)
       for (let x = 0; x < m[y].length; x++) {
         if (!m[y][x]) continue;
@@ -71,6 +82,20 @@ function render(piece) {
         if (by >= 0) cells[by * COLS + bx].className = `cell on c-${piece.type}`;
       }
   }
+}
+
+function drawNext(type) {
+  const el = document.getElementById("demo-next");
+  if (!el) return;
+  el.innerHTML = "";
+  const m = SHAPES[type];
+  el.style.gridTemplateColumns = `repeat(${m[0].length}, 7px)`;
+  for (let y = 0; y < m.length; y++)
+    for (let x = 0; x < m[y].length; x++) {
+      const d = document.createElement("i");
+      if (m[y][x]) d.className = `on c-${type}`;
+      el.appendChild(d);
+    }
 }
 
 function setScore(n) {
@@ -120,6 +145,42 @@ async function gestureFlick() {
   thumbAt(50, 88);
   await sleep(170);
   thumbEl.classList.remove("show", "press", "flicking");
+}
+
+// swipe up, open the mini settings sheet, switch theme, close
+async function settingsScene() {
+  if (!sheetEl || !screenEl) return;
+  thumbEl.classList.remove("flicking");
+  thumbAt(50, 90);
+  thumbEl.classList.add("show", "press");
+  await sleep(240);
+  thumbEl.classList.add("flicking");
+  thumbAt(50, 45);
+  await sleep(220);
+  thumbEl.classList.remove("show", "press", "flicking");
+  sheetEl.classList.add("show");
+  await sleep(750);
+  // tap the catppuccin tile
+  thumbAt(63, 92);
+  thumbEl.classList.add("show");
+  await sleep(300);
+  thumbEl.classList.add("press", "ripple");
+  await sleep(200);
+  boardEl.classList.add("theming");
+  screenEl.classList.add("dt-cat");
+  sheetEl.querySelector(".t-colorful").classList.remove("active");
+  sheetEl.querySelector(".t-cat").classList.add("active");
+  setTimeout(() => boardEl.classList.remove("theming"), 700);
+  thumbEl.classList.remove("press", "ripple");
+  await sleep(800);
+  // tap above the sheet to dismiss
+  thumbAt(50, 30);
+  await sleep(320);
+  thumbEl.classList.add("press");
+  await sleep(160);
+  thumbEl.classList.remove("press", "show");
+  sheetEl.classList.remove("show");
+  await sleep(450);
 }
 
 // ---- piece actions ----
@@ -200,25 +261,39 @@ async function lockPiece(piece) {
 
 async function attractLoop() {
   for (;;) {
+    // reset to the default theme each pass
+    screenEl?.classList.remove("dt-cat");
+    sheetEl?.querySelector(".t-cat")?.classList.remove("active");
+    sheetEl?.querySelector(".t-colorful")?.classList.add("active");
     prefill();
     setScore(0);
     render();
     await sleep(900);
 
     // S: rotate vertical, slot into the staircase — double line clear
+    drawNext("I");
     await playPiece("S", 2, { 2: [{ g: "tap" }], 4: [{ g: "drag", to: 3 }], 6: [{ g: "flick" }] });
     await sleep(500);
 
     // I: rotate vertical, drop into the single-column well — line clear
+    drawNext("T");
     await playPiece("I", 2, { 2: [{ g: "tap" }], 4: [{ g: "drag", to: 4 }], 6: [{ g: "flick" }] });
     await sleep(500);
 
     // T: rotate, stack flush against the I column
+    drawNext("O");
     await playPiece("T", 3, { 1: [{ g: "tap" }], 3: [{ g: "drag", to: 5 }], 5: [{ g: "flick" }] });
     await sleep(400);
 
     // O: drag to the left wall, stack
+    drawNext("S");
     await playPiece("O", 3, { 3: [{ g: "drag", to: 0 }], 6: [{ g: "flick" }] });
+    await sleep(600);
+
+    // open settings, switch to the catppuccin theme, keep playing
+    await settingsScene();
+    drawNext("T");
+    await playPiece("S", 2, { 2: [{ g: "tap" }], 5: [{ g: "drag", to: 5 }], 7: [{ g: "flick" }] });
 
     await sleep(1400);
     boardEl.classList.add("fade");
@@ -280,3 +355,9 @@ async function loadHiscores() {
   }
 }
 loadHiscores();
+
+// hide the scroll cue on first scroll
+const scrollCue = document.getElementById("scroll-cue");
+if (scrollCue) {
+  window.addEventListener("scroll", () => scrollCue.classList.add("hide"), { once: true, passive: true });
+}
