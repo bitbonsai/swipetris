@@ -6,8 +6,13 @@
   <title>swipetris — swipe. stack. repeat.</title>
   <meta name="description" content="3D falling blocks built for your thumb. Free forever, works offline, no app store. Swipe to move, tap to rotate, flick to drop.">
   <meta name="theme-color" content="#0f1115">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="swipetris">
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Press+Start+2P&display=swap">
@@ -103,7 +108,7 @@
           <span class="piece-icon icon-S"><i></i><i></i><i></i><i></i></span>
           <h3>arcade leaderboard</h3>
           <p>Crack the top&nbsp;5, punch in your five letters. Like the old days.</p>
-          <ol class="hiscores">
+          <ol class="hiscores" id="hiscores">
             <li><span class="rk r1">1</span><span class="nm">PIXEL</span><b>128,400</b></li>
             <li><span class="rk r2">2</span><span class="nm">STACK</span><b>97,210</b></li>
             <li><span class="rk r3">3</span><span class="nm">BLOCK</span><b>88,050</b></li>

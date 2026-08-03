@@ -1,5 +1,5 @@
-import { Database } from "bun:sqlite";
-import { drizzle } from "drizzle-orm/bun-sqlite";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 export const scores = sqliteTable("scores", {
@@ -15,8 +15,13 @@ export const scores = sqliteTable("scores", {
   createdAt: integer("created_at").notNull(),
 });
 
-const sqlite = new Database("swipetris.db");
-sqlite.run(`
+// Turso in production (TURSO_URL + TURSO_TOKEN), local file for dev
+const client = createClient({
+  url: process.env.TURSO_URL ?? "file:swipetris.db",
+  authToken: process.env.TURSO_TOKEN,
+});
+
+await client.executeMultiple(`
   CREATE TABLE IF NOT EXISTS scores (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -32,4 +37,4 @@ sqlite.run(`
   CREATE INDEX IF NOT EXISTS idx_scores_mode_seed ON scores (mode, seed, score DESC);
 `);
 
-export const db = drizzle(sqlite);
+export const db = drizzle(client);

@@ -239,3 +239,44 @@ if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 } else {
   attractLoop();
 }
+
+// real daily top-5 (falls back to the static sample when offline)
+async function loadHiscores() {
+  const list = document.getElementById("hiscores");
+  if (!list) return;
+  const d = new Date();
+  const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  let rows;
+  try {
+    const res = await fetch(`/api/leaderboard?mode=daily&seed=${seed}`);
+    if (!res.ok) return;
+    rows = (await res.json()).leaderboard.slice(0, 5);
+  } catch {
+    return;
+  }
+  list.innerHTML = "";
+  for (let i = 0; i < 5; i++) {
+    const li = document.createElement("li");
+    const rk = document.createElement("span");
+    rk.className = "rk" + (i < 3 ? ` r${i + 1}` : "");
+    rk.textContent = i + 1;
+    const nm = document.createElement("span");
+    nm.className = "nm";
+    const b = document.createElement("b");
+    const r = rows[i];
+    if (r) {
+      nm.textContent = String(r.name).toUpperCase().slice(0, 5);
+      b.textContent = r.score.toLocaleString();
+    } else if (i === rows.length) {
+      nm.textContent = "YOU??";
+      b.textContent = "?????";
+      b.className = "you";
+    } else {
+      nm.textContent = "-----";
+      b.textContent = "·····";
+    }
+    li.append(rk, nm, b);
+    list.appendChild(li);
+  }
+}
+loadHiscores();

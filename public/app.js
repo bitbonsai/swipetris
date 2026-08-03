@@ -58,6 +58,9 @@ let baseGridColor, accentColor;
 export function setTheme(name) {
   theme = THEMES[name] ?? THEMES.colorful;
   document.body.className = theme.css;
+  // expose piece colors to CSS (menu title letters, buttons)
+  for (const [k, v] of Object.entries(theme.colors))
+    document.documentElement.style.setProperty(`--c-${k}`, "#" + v.toString(16).padStart(6, "0"));
   baseGridColor = new THREE.Color(theme.grid);
   accentColor = new THREE.Color(theme.accent);
   invalidateMaterials();
@@ -80,14 +83,55 @@ function mulberry32(a) {
   };
 }
 export function dailySeed(date = new Date()) {
-  const s = date.toISOString().slice(0, 10).replaceAll("-", "");
-  return Number(s);
+  // local date, so the daily rolls over at the player's midnight
+  return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+}
+
+// ---------- audio (synthesized, no assets) ----------
+let audioCtx = null;
+let muted = localStorage.getItem("swipetris-muted") === "1";
+export function setMuted(v) {
+  muted = v;
+  localStorage.setItem("swipetris-muted", v ? "1" : "0");
+}
+function tone(freq, dur = 0.06, type = "square", gain = 0.04, delay = 0) {
+  if (muted) return;
+  try {
+    audioCtx ??= new (window.AudioContext ?? window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const t = audioCtx.currentTime + delay;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(t);
+    o.stop(t + dur + 0.02);
+  } catch {}
+}
+const sfx = {
+  move: () => tone(240, 0.03, "square", 0.018),
+  rotate: () => tone(330, 0.05, "square", 0.03),
+  lock: () => tone(140, 0.08, "triangle", 0.05),
+  drop: () => tone(110, 0.09, "triangle", 0.06),
+  clear: (n) => {
+    const notes = [523, 659, 784, 1047];
+    for (let i = 0; i <= Math.min(n, 3); i++) tone(notes[i], 0.09, "square", 0.04, i * 0.07);
+  },
+  over: () => [392, 330, 262, 196].forEach((f, i) => tone(f, 0.13, "triangle", 0.05, i * 0.13)),
+};
+function buzz(ms) {
+  try { navigator.vibrate?.(ms); } catch {}
 }
 
 // ---------- game state ----------
 let board, current, nextType, bag, rng, mode, seed;
 let score, lines, level, pieces, startTime, gameOver;
 let dropAcc = 0, lastTick = 0, running = false;
+const LOCK_DELAY = 300;
+let lockAt = 0, lockResets = 0;
 
 function freshBag() {
   const b = [...TYPES];
@@ -122,6 +166,8 @@ function collides(m, px, py) {
 }
 function spawn() {
   current = { type: nextType, rot: 0, x: 0, y: 0 };
+  lockAt = 0;
+  lockResets = 0;
   nextType = takeType();
   current.x = current.type === "O" ? 4 : 3;
   current.y = 0;
@@ -131,11 +177,19 @@ function spawn() {
   drawNext();
   syncMeshes();
 }
+function resetLockDelay() {
+  if (lockAt && lockResets < 8) {
+    lockAt = performance.now();
+    lockResets++;
+  }
+}
 function move(dx) {
   if (!running || !current) return;
   const m = matrixOf(current);
   if (!collides(m, current.x + dx, current.y)) {
     current.x += dx;
+    resetLockDelay();
+    sfx.move();
     syncMeshes();
   }
 }
@@ -146,6 +200,8 @@ function rotate() {
     if (!collides(m, current.x + kick, current.y)) {
       current.rot = (current.rot + 1) % 4;
       current.x += kick;
+      resetLockDelay();
+      sfx.rotate();
       syncMeshes();
       return;
     }
@@ -161,8 +217,7 @@ function softDropStep() {
     emitStats();
     return true;
   }
-  lockPiece();
-  return false;
+  return false; // grounded — lock delay takes over
 }
 function hardDrop() {
   if (!running || !current) return;
@@ -170,6 +225,8 @@ function hardDrop() {
   let d = 0;
   while (!collides(m, current.x, current.y + 1)) { current.y++; d++; }
   score += d * 2;
+  sfx.drop();
+  buzz(15);
   lockPiece(true);
 }
 function ghostY() {
@@ -190,6 +247,7 @@ function lockPiece(slam = false) {
     }
   pieces++;
   if (slam) shake(0.8);
+  else { sfx.lock(); buzz(10); }
   const fullRows = [];
   for (let y = 0; y < TOTAL; y++) if (board[y].every((c) => c)) fullRows.push(y);
   emitStats();
@@ -211,7 +269,7 @@ function startClearAnim(rows) {
   const ys = new Set(rows.map((y) => TOTAL - 1 - y + 0.5));
   const meshes = [];
   for (const mesh of boardGroup.children)
-    if (ys.has(mesh.position.y)) {
+    if (mesh.visible && ys.has(mesh.position.y)) {
       mesh.material = mesh.material.clone(); // detach from cache so the glow stays local
       mesh.material.emissiveIntensity = 0.9;
       meshes.push(mesh);
@@ -234,6 +292,8 @@ function finishClear() {
   score += pts;
   level = Math.floor(lines / 10) + 1;
   shake(0.9 + cleared * 0.5);
+  sfx.clear(cleared);
+  buzz(cleared > 1 ? 60 : 30);
   popText(cleared === 1 ? `+${pts}` : ["", "", "DOUBLE!", "TRIPLE!", "TETRIS!"][cleared], cleared > 1 ? "big" : "");
   emitStats();
   dropAcc = 0;
@@ -261,6 +321,8 @@ export function startGame() {
 function endGame() {
   running = false;
   gameOver = true;
+  sfx.over();
+  buzz(120);
   const detail = { mode, seed, score, lines, level, pieces, durationMs: Date.now() - startTime };
   window.dispatchEvent(new CustomEvent("gameover", { detail }));
 }
@@ -368,44 +430,44 @@ function material(type, ghost = false) {
   return matCache.get(key);
 }
 function invalidateMaterials() { matCache.clear(); }
-function addBlock(group, type, bx, by, ghost = false) {
-  const mesh = new THREE.Mesh(blockGeo, material(type, ghost));
-  mesh.position.set(bx + 0.5, by + 0.5, 0);
-  group.add(mesh);
-}
-function clearGroup(g) {
-  while (g.children.length) g.remove(g.children[0]);
+// pooled meshes: reuse instead of rebuilding every frame (less GC churn on mobile)
+function syncGroup(group, blocks) {
+  while (group.children.length < blocks.length) group.add(new THREE.Mesh(blockGeo));
+  group.children.forEach((mesh, i) => {
+    const b = blocks[i];
+    if (b) {
+      mesh.visible = true;
+      mesh.scale.setScalar(1);
+      mesh.material = material(b.type, b.ghost);
+      mesh.position.set(b.x + 0.5, b.y + 0.5, 0);
+    } else {
+      mesh.visible = false;
+    }
+  });
 }
 // world y: visible row 0 (bottom) -> 0.5; board index TOTAL-1 -> bottom
 function worldY(boardIdx) { return TOTAL - 1 - boardIdx; }
 
 function syncMeshes() {
   if (!boardGroup || !board) return;
-  clearGroup(boardGroup);
+  const solid = [], ghost = [];
   for (let y = 0; y < TOTAL; y++)
     for (let x = 0; x < COLS; x++)
-      if (board[y][x]) addBlock(boardGroup, board[y][x], x, worldY(y));
-  if (running && current) {
-    const m = matrixOf(current);
-    for (let y = 0; y < m.length; y++)
-      for (let x = 0; x < m[y].length; x++)
-        if (m[y][x]) {
-          const wy = worldY(current.y + y);
-          if (wy < ROWS) addBlock(boardGroup, current.type, current.x + x, wy);
-        }
-  }
-  // ghost
-  clearGroup(ghostGroup);
+      if (board[y][x]) solid.push({ type: board[y][x], x, y: worldY(y) });
   if (running && current) {
     const m = matrixOf(current);
     const gy = ghostY();
     for (let y = 0; y < m.length; y++)
       for (let x = 0; x < m[y].length; x++)
         if (m[y][x]) {
-          const wy = worldY(gy + y);
-          if (wy < ROWS) addBlock(ghostGroup, current.type, current.x + x, wy, true);
+          const wy = worldY(current.y + y);
+          if (wy < ROWS) solid.push({ type: current.type, x: current.x + x, y: wy });
+          const gwy = worldY(gy + y);
+          if (gwy < ROWS) ghost.push({ type: current.type, x: current.x + x, y: gwy, ghost: true });
         }
   }
+  syncGroup(boardGroup, solid);
+  syncGroup(ghostGroup, ghost);
 }
 
 function shake(amp = 1) { shakeAmp = Math.max(shakeAmp, amp); }
@@ -438,14 +500,21 @@ function tick(now) {
   }
   if (running && current) {
     dropAcc += now - lastTick;
-    if (dropAcc >= dropInterval()) {
-      dropAcc = 0;
-      const m = matrixOf(current);
-      if (!collides(m, current.x, current.y + 1)) {
+    const m = matrixOf(current);
+    if (collides(m, current.x, current.y + 1)) {
+      // grounded: lock after a grace window instead of instantly
+      if (!lockAt) lockAt = now;
+      if (now - lockAt >= LOCK_DELAY) {
+        lockAt = 0;
+        lockPiece();
+      }
+      if (dropAcc >= dropInterval()) dropAcc = 0;
+    } else {
+      lockAt = 0;
+      if (dropAcc >= dropInterval()) {
+        dropAcc = 0;
         current.y += 1;
         syncMeshes();
-      } else {
-        lockPiece();
       }
     }
   }
@@ -523,7 +592,7 @@ export function drawLogo() {
 
 // ---------- input ----------
 function initInput(el) {
-  let start = null, movedX = 0, softDropping = false;
+  let start = null, movedX = 0, softDropping = false, lastDropY = 0;
   const cellPx = () => el.clientWidth / COLS;
 
   el.addEventListener("pointerdown", (e) => {
@@ -539,8 +608,18 @@ function initInput(el) {
       const step = cells > movedX ? 1 : -1;
       while (movedX !== cells) { move(step); movedX += step; }
     }
-    const dy = e.clientY - start.y;
-    if (dy > cellPx() * 1.5) softDropping = true;
+    // drag down = soft drop, one row per ~0.8 cell of travel
+    if (!softDropping && e.clientY - start.y > cellPx() * 1.2 && Math.abs(dx) < cellPx()) {
+      softDropping = true;
+      lastDropY = e.clientY;
+    }
+    if (softDropping) {
+      const stepPx = cellPx() * 0.8;
+      while (e.clientY - lastDropY >= stepPx) {
+        if (!softDropStep()) break;
+        lastDropY += stepPx;
+      }
+    }
   });
   el.addEventListener("pointerup", (e) => {
     if (!start) return;

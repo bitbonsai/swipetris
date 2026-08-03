@@ -5,15 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>swipetris</title>
   <meta name="theme-color" content="#0f1115">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="swipetris">
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Press+Start+2P&display=swap">
   <link rel="stylesheet" href="/style.css">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
-    import { boot, startGame, setTheme, dailySeed } from "/app.js";
+    import { boot, startGame, setTheme, setMuted, dailySeed } from "/app.js";
 
     window.Alpine = Alpine;
     Alpine.data("ui", () => ({
@@ -28,9 +33,26 @@
         leaderboard: [],
         shared: false, submitted: false, rankText: "",
         lastResult: null,
+        muted: localStorage.getItem("swipetris-muted") === "1",
+        bestTick: 0, newBest: false, countdown: "",
+
+        get best() {
+          this.bestTick;
+          return Number(localStorage.getItem("swipetris-best") || 0);
+        },
 
         init() {
           setTheme(this.theme);
+          setMuted(this.muted);
+          const tickCountdown = () => {
+            const now = new Date();
+            const midnight = new Date(now);
+            midnight.setHours(24, 0, 0, 0);
+            const ms = midnight - now;
+            this.countdown = `${Math.floor(ms / 3600000)}h ${Math.floor(ms / 60000) % 60}m`;
+          };
+          tickCountdown();
+          setInterval(tickCountdown, 30000);
           window.addEventListener("stats", (e) => {
             this.score = e.detail.score; this.lines = e.detail.lines; this.level = e.detail.level;
           });
@@ -39,12 +61,21 @@
             this.state = "over";
             this.gestureHint = false;
             this.shared = false; this.submitted = false;
+            this.newBest = e.detail.score > 0 && e.detail.score > this.best;
+            if (this.newBest) {
+              localStorage.setItem("swipetris-best", String(e.detail.score));
+              this.bestTick++;
+            }
             await this.loadBoard();
           });
           window.addEventListener("settings", () => {
             this.sheet = true;
             this.gestureHint = false;
           });
+        },
+        setSound(on) {
+          this.muted = !on;
+          setMuted(this.muted);
         },
         pickTheme(t) {
           this.theme = t;
@@ -64,7 +95,8 @@
         },
         async share() {
           const r = this.lastResult;
-          const label = `Daily ${new Date().toISOString().slice(0,10)}`;
+          const s = String(dailySeed());
+          const label = `Daily ${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6)}`;
           const text = `swipetris ${label}\n${r.score.toLocaleString()} pts · ${r.lines} lines · lv ${r.level}\nhttps://swipetris.com`;
           if (navigator.share) {
             try { await navigator.share({ text }); this.shared = true; return; } catch {}
@@ -98,6 +130,8 @@
 </head>
 <body class="theme-colorful" x-data="ui">
 
+  <div class="scanlines" aria-hidden="true"></div>
+
   <div id="app">
     <main>
       <div id="game-wrap">
@@ -122,9 +156,11 @@
 
         <div class="overlay menu" x-show="state==='menu'" x-transition>
           <canvas id="logo-canvas" width="192" height="192"></canvas>
-          <div class="menu-title">swipetris</div>
+          <div class="menu-title"><span>s</span><span>w</span><span>i</span><span>p</span><span>e</span><span>t</span><span>r</span><span>i</span><span>s</span></div>
           <p class="tagline">swipe. stack. repeat.</p>
           <button class="big" @click="play()">PLAY DAILY CHALLENGE</button>
+          <p class="menu-meta" x-show="best > 0">BEST <b x-text="best.toLocaleString()"></b></p>
+          <p class="menu-meta dim">new daily in <span x-text="countdown"></span></p>
           <p class="hint">drag to move · tap to rotate · flick down to drop</p>
           <a class="about-link" href="/">what is swipetris?</a>
         </div>
@@ -132,6 +168,7 @@
         <div class="overlay over" x-show="state==='over'" x-transition>
           <span class="over-label">Game over</span>
           <div class="over-score" x-text="score.toLocaleString()">0</div>
+          <div class="new-best" x-show="newBest">&#9733; NEW BEST &#9733;</div>
           <div class="over-chips">
             <span class="chip"><b x-text="lines"></b> lines</span>
             <span class="chip">lv <b x-text="level"></b></span>
@@ -173,6 +210,13 @@
       x-transition:leave-end="sheet-hidden">
       <div class="sheet-card">
         <div class="grabber"></div>
+        <div class="sheet-section">
+          <span class="sheet-label">Sound</span>
+          <div class="modes">
+            <button :class="{active: !muted}" @click="setSound(true)">On</button>
+            <button :class="{active: muted}" @click="setSound(false)">Off</button>
+          </div>
+        </div>
         <div class="sheet-section">
           <span class="sheet-label">Theme</span>
           <div class="theme-grid">
