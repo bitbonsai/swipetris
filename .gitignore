@@ -3,3 +3,5 @@ swipetris.db
 .env
 .env.*
 .wrangler/
+.plans/next.md
+.plans/next.prev.md
