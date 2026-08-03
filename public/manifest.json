@@ -2,7 +2,7 @@
   "name": "swipetris",
   "short_name": "swipetris",
   "description": "Gesture-first falling blocks. Swipe to move, tap to rotate, flick to drop.",
-  "start_url": "/",
+  "start_url": "/play",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f1115",

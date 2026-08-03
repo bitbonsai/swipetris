@@ -65,6 +65,7 @@ app.use("*", async (c, next) => {
 
 app.use("/*", serveStatic({ root: "./public" }));
 app.get("/", serveStatic({ path: "./public/index.html" }));
+app.get("/play", serveStatic({ path: "./public/play.html" }));
 
 const port = Number(process.env.PORT ?? 3000);
 console.log(`swipetris on http://localhost:${port}`);
