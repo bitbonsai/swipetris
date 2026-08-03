@@ -1,4 +1,4 @@
-import { db, json } from "./_shared.js";
+import { exec, json } from "./_shared.js";
 
 // mirrors src/server.ts: validation, plausibility, rate limit, dedup-aware rank
 
@@ -53,19 +53,20 @@ export async function onRequestPost({ request, env }) {
   if (!s) return json({ error: "invalid score payload" }, 400);
   if (!plausible(s)) return json({ error: "score rejected" }, 422);
 
-  const client = db(env);
-  await client.execute({
-    sql: "INSERT INTO scores (name, mode, seed, score, lines, level, pieces, duration_ms, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    args: [s.name, s.mode, s.seed, s.score, s.lines, s.level, s.pieces, s.durationMs, Date.now()],
-  });
-  const r = await client.execute({
-    sql: `SELECT count(*) + 1 AS rank FROM (
-            SELECT name, max(score) AS best FROM scores
-            WHERE mode = ? AND seed = ? AND name != ?
-            GROUP BY name
-            HAVING best > ?
-          )`,
-    args: [s.mode, s.seed, s.name, s.score],
-  });
-  return json({ ok: true, rank: Number(r.rows[0].rank) });
+  await exec(
+    env,
+    "INSERT INTO scores (name, mode, seed, score, lines, level, pieces, duration_ms, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [s.name, s.mode, s.seed, s.score, s.lines, s.level, s.pieces, s.durationMs, Date.now()],
+  );
+  const rows = await exec(
+    env,
+    `SELECT count(*) + 1 AS rank FROM (
+       SELECT name, max(score) AS best FROM scores
+       WHERE mode = ? AND seed = ? AND name != ?
+       GROUP BY name
+       HAVING best > ?
+     )`,
+    [s.mode, s.seed, s.name, s.score],
+  );
+  return json({ ok: true, rank: Number(rows[0].rank) });
 }
