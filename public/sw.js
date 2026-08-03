@@ -1,5 +1,5 @@
-const CACHE = "swipetris-v6";
-const ASSETS = ["/", "/index.html", "/landing.css", "/landing.js", "/play", "/play.html", "/style.css", "/app.js", "/manifest.json", "/icon.svg", "/vendor/three.module.min.js", "/vendor/three.core.min.js", "/vendor/RoundedBoxGeometry.js"];
+const CACHE = "swipetris-v7";
+const ASSETS = ["/", "/index.html", "/landing.css", "/landing.js", "/play", "/play.html", "/style.css", "/app.js", "/manifest.json", "/icon.svg", "/vendor/alpinejs.esm.js", "/vendor/three.module.min.js", "/vendor/three.core.min.js", "/vendor/RoundedBoxGeometry.js"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));

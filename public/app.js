@@ -243,9 +243,9 @@ function dropInterval() {
   return Math.max(60, 1000 * Math.pow(0.85, level - 1));
 }
 
-export function startGame(m, customSeed) {
-  mode = m;
-  seed = m === "daily" ? dailySeed() : (customSeed ?? Math.floor(Math.random() * 2 ** 31));
+export function startGame() {
+  mode = "daily";
+  seed = dailySeed();
   rng = mulberry32(seed);
   bag = freshBag();
   nextType = takeType();
@@ -548,8 +548,10 @@ function initInput(el) {
     const dt = performance.now() - start.t;
     const adx = Math.abs(dx), ady = Math.abs(dy);
     if (running) {
-      if (dt < 220 && adx < 12 && ady < 12) rotate();           // tap
-      else if (dy > 40 && ady > adx * 1.4 && dt < 300) hardDrop(); // fast swipe down
+      if (dt < 220 && adx < 12 && ady < 12) rotate();             // tap
+      else if (dy < -40 && ady > adx * 1.4 && dt < 350) {
+        window.dispatchEvent(new CustomEvent("settings"));         // fast swipe up
+      } else if (dy > 40 && ady > adx * 1.4 && dt < 300) hardDrop(); // fast swipe down
     }
     start = null; softDropping = false;
   });

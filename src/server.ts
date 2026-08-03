@@ -7,8 +7,8 @@ import { desc, and, eq, sql } from "drizzle-orm";
 const app = new Hono();
 
 const scoreSchema = z.object({
-  name: z.string().trim().min(1).max(12),
-  mode: z.enum(["daily", "endless"]),
+  name: z.string().trim().min(1).max(5),
+  mode: z.literal("daily"),
   seed: z.number().int().min(0),
   score: z.number().int().min(0).max(9_999_999),
   lines: z.number().int().min(0).max(9_999),

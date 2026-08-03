@@ -12,17 +12,19 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Press+Start+2P&display=swap">
   <link rel="stylesheet" href="/style.css">
   <script type="module">
+    import Alpine from "/vendor/alpinejs.esm.js";
     import { boot, startGame, setTheme, dailySeed } from "/app.js";
-    boot();
 
-    document.addEventListener("alpine:init", () => {
-      Alpine.data("ui", () => ({
-        mode: "daily",
+    window.Alpine = Alpine;
+    Alpine.data("ui", () => ({
         theme: localStorage.getItem("swipetris-theme") ?? "colorful",
         state: "menu",
         sheet: false,
+        gestureHint: false,
+        settingsHintSeen: false,
+        hintTimer: null,
         score: 0, lines: 0, level: 1,
-        name: (localStorage.getItem("swipetris-name") ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3),
+        name: (localStorage.getItem("swipetris-name") ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5),
         leaderboard: [],
         shared: false, submitted: false, rankText: "",
         lastResult: null,
@@ -35,8 +37,13 @@
           window.addEventListener("gameover", async (e) => {
             this.lastResult = e.detail;
             this.state = "over";
+            this.gestureHint = false;
             this.shared = false; this.submitted = false;
             await this.loadBoard();
+          });
+          window.addEventListener("settings", () => {
+            this.sheet = true;
+            this.gestureHint = false;
           });
         },
         pickTheme(t) {
@@ -46,11 +53,18 @@
         },
         play() {
           this.state = "playing";
-          startGame(this.mode);
+          this.sheet = false;
+          startGame();
+          if (!this.settingsHintSeen) {
+            this.settingsHintSeen = true;
+            this.gestureHint = true;
+            clearTimeout(this.hintTimer);
+            this.hintTimer = setTimeout(() => { this.gestureHint = false; }, 4200);
+          }
         },
         async share() {
           const r = this.lastResult;
-          const label = r.mode === "daily" ? `Daily ${new Date().toISOString().slice(0,10)}` : "Endless";
+          const label = `Daily ${new Date().toISOString().slice(0,10)}`;
           const text = `swipetris ${label}\n${r.score.toLocaleString()} pts · ${r.lines} lines · lv ${r.level}\nhttps://swipetris.com`;
           if (navigator.share) {
             try { await navigator.share({ text }); this.shared = true; return; } catch {}
@@ -74,31 +88,17 @@
           }
         },
         async loadBoard() {
-          const r = this.lastResult;
-          const seed = r.mode === "daily" ? dailySeed() : r.seed;
-          const res = await fetch(`/api/leaderboard?mode=${r.mode}&seed=${seed}`);
+          const res = await fetch(`/api/leaderboard?mode=daily&seed=${dailySeed()}`);
           if (res.ok) this.leaderboard = (await res.json()).leaderboard;
         },
       }));
-    });
+    Alpine.start();
+    boot();
   </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="theme-colorful" x-data="ui">
 
   <div id="app">
-    <header>
-      <div class="modes">
-        <button :class="{active: mode==='daily'}" @click="mode='daily'">Daily</button>
-        <button :class="{active: mode==='endless'}" @click="mode='endless'">Endless</button>
-      </div>
-      <div class="themes">
-        <template x-for="t in ['colorful','pastels','catppuccin','crt']" :key="t">
-          <button class="swatch" :class="[t, {active: theme===t}]" @click="pickTheme(t)" :title="t"></button>
-        </template>
-      </div>
-    </header>
-
     <main>
       <div id="game-wrap">
         <div id="clear-flash"></div>
@@ -115,12 +115,16 @@
           </div>
         </div>
         <div id="hud-pops"></div>
+        <div id="settings-swipe-hint" x-cloak x-show="gestureHint && state === 'playing'" x-transition.opacity aria-live="polite">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 18V6m0 0-5 5m5-5 5 5"/></svg>
+          <span>SWIPE UP FOR SETTINGS</span>
+        </div>
 
         <div class="overlay menu" x-show="state==='menu'" x-transition>
           <canvas id="logo-canvas" width="192" height="192"></canvas>
           <div class="menu-title">swipetris</div>
           <p class="tagline">swipe. stack. repeat.</p>
-          <button class="big" @click="play()">Play <span x-text="mode"></span></button>
+          <button class="big" @click="play()">PLAY DAILY CHALLENGE</button>
           <p class="hint">drag to move · tap to rotate · flick down to drop</p>
           <a class="about-link" href="/">what is swipetris?</a>
         </div>
@@ -136,7 +140,7 @@
 
           <form x-show="!submitted" @submit.prevent="submitScore()">
             <input class="initials" x-model="name" @input="name = name.toUpperCase().replace(/[^A-Z0-9]/g, '')"
-              maxlength="3" placeholder="AAA" autocomplete="off" required>
+              maxlength="5" placeholder="PLAYER" autocomplete="off" required>
             <button type="submit">Save</button>
           </form>
           <div class="rank-chip" x-show="submitted" x-text="rankText + ' on the board'"></div>
@@ -159,16 +163,6 @@
       </div>
     </main>
 
-    <button id="fab" :class="{open: sheet}" @click="sheet = !sheet" aria-label="Options">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/>
-        <line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/>
-        <line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/>
-        <line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/>
-        <line x1="16" x2="16" y1="18" y2="22"/>
-      </svg>
-    </button>
-
     <div id="sheet-backdrop" x-show="sheet" x-transition.opacity @click="sheet = false"></div>
     <div id="sheet" x-show="sheet"
       x-transition:enter="sheet-enter"
@@ -179,13 +173,6 @@
       x-transition:leave-end="sheet-hidden">
       <div class="sheet-card">
         <div class="grabber"></div>
-        <div class="sheet-section">
-          <span class="sheet-label">Mode</span>
-          <div class="modes">
-            <button :class="{active: mode==='daily'}" @click="mode='daily'">Daily</button>
-            <button :class="{active: mode==='endless'}" @click="mode='endless'">Endless</button>
-          </div>
-        </div>
         <div class="sheet-section">
           <span class="sheet-label">Theme</span>
           <div class="theme-grid">
