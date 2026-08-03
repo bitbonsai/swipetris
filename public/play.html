@@ -80,6 +80,11 @@
             this.sheet = true;
             this.gestureHint = false;
           });
+          // arriving from the landing CTA on a phone: skip the menu, straight into the game
+          if (location.hash === "#go" && window.matchMedia("(pointer: coarse)").matches) {
+            history.replaceState(null, "", "/play");
+            this.play();
+          }
         },
         setSound(on) {
           this.muted = !on;
