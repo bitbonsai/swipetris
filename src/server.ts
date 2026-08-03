@@ -91,6 +91,35 @@ app.get("/api/leaderboard", async (c) => {
   return c.json({ leaderboard: rows });
 });
 
+app.get("/api/daily-scores", async (c) => {
+  // Each player gets one place per day; keep the archive compact at 90 boards.
+  const rows = await db.all<{ seed: number; name: string; score: number }>(sql`
+    WITH player_bests AS (
+      SELECT seed, name, max(score) AS score
+      FROM scores
+      WHERE mode = 'daily'
+      GROUP BY seed, name
+    ), recent_days AS (
+      SELECT seed FROM player_bests GROUP BY seed ORDER BY seed DESC LIMIT 90
+    ), ranked AS (
+      SELECT seed, name, score,
+        row_number() OVER (PARTITION BY seed ORDER BY score DESC, name ASC) AS rank
+      FROM player_bests
+    )
+    SELECT seed, name, score
+    FROM ranked
+    WHERE rank <= 5 AND seed IN (SELECT seed FROM recent_days)
+    ORDER BY seed DESC, rank ASC
+  `);
+  const bySeed = new Map<number, { seed: number; leaderboard: { name: string; score: number }[] }>();
+  for (const row of rows) {
+    const day = bySeed.get(row.seed) ?? { seed: row.seed, leaderboard: [] };
+    day.leaderboard.push({ name: row.name, score: row.score });
+    bySeed.set(row.seed, day);
+  }
+  return c.json({ dailyScores: [...bySeed.values()] });
+});
+
 // no-store on HTML, revalidate js/css — stale app.js against fresh HTML breaks module imports
 app.use("*", async (c, next) => {
   await next();
@@ -106,6 +135,7 @@ app.use("/*", serveStatic({ root: "./public" }));
 app.get("/", serveStatic({ path: "./public/index.html" }));
 app.get("/play", serveStatic({ path: "./public/play.html" }));
 app.get("/about", serveStatic({ path: "./public/about.html" }));
+app.get("/scores", serveStatic({ path: "./public/scores.html" }));
 
 const port = Number(process.env.PORT ?? 3000);
 console.log(`swipetris on http://localhost:${port}`);

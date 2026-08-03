@@ -18,3 +18,9 @@
 
 /about.html
   Cache-Control: no-store
+
+/scores
+  Cache-Control: no-store
+
+/scores.html
+  Cache-Control: no-store
