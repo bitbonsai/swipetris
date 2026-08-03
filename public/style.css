@@ -37,6 +37,11 @@ body.theme-crt {
 header {
   display: flex; align-items: center; gap: 1rem;
   padding: 0.65rem 1rem;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 12%, transparent),
+    color-mix(in srgb, var(--accent2) 7%, transparent) 55%,
+    transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
 }
 h1 {
   font-size: 1.05rem; letter-spacing: 0.22em; font-weight: 800;
@@ -93,8 +98,8 @@ main { flex: 1; display: flex; min-height: 0; }
   display: flex; justify-content: space-between; align-items: flex-start;
   padding: 0.7rem 0.85rem 2.4rem; pointer-events: none;
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--bg) 88%, transparent) 0%,
-    color-mix(in srgb, var(--bg) 45%, transparent) 55%,
+    color-mix(in srgb, var(--accent) 16%, color-mix(in srgb, var(--bg) 92%, transparent)) 0%,
+    color-mix(in srgb, var(--accent2) 6%, color-mix(in srgb, var(--bg) 55%, transparent)) 45%,
     transparent 100%);
 }
 .hud-left b {

@@ -64,7 +64,6 @@ export function setTheme(name) {
   if (scene) {
     scene.background = new THREE.Color(theme.bg);
     if (scene.userData.rim) scene.userData.rim.color.setHex(theme.accent);
-    gridMat.color.copy(baseGridColor);
     syncMeshes();
     drawNext();
   }
@@ -133,7 +132,7 @@ function spawn() {
   syncMeshes();
 }
 function move(dx) {
-  if (!running) return;
+  if (!running || !current) return;
   const m = matrixOf(current);
   if (!collides(m, current.x + dx, current.y)) {
     current.x += dx;
@@ -141,7 +140,7 @@ function move(dx) {
   }
 }
 function rotate() {
-  if (!running) return;
+  if (!running || !current) return;
   const m = rotateCW(matrixOf(current));
   for (const kick of [0, 1, -1, 2, -2]) {
     if (!collides(m, current.x + kick, current.y)) {
@@ -153,6 +152,7 @@ function rotate() {
   }
 }
 function softDropStep() {
+  if (!running || !current) return false;
   const m = matrixOf(current);
   if (!collides(m, current.x, current.y + 1)) {
     current.y += 1;
@@ -165,7 +165,7 @@ function softDropStep() {
   return false;
 }
 function hardDrop() {
-  if (!running) return;
+  if (!running || !current) return;
   const m = matrixOf(current);
   let d = 0;
   while (!collides(m, current.x, current.y + 1)) { current.y++; d++; }
@@ -190,25 +190,53 @@ function lockPiece(slam = false) {
     }
   pieces++;
   if (slam) shake(0.8);
-  // clear lines
   const fullRows = [];
   for (let y = 0; y < TOTAL; y++) if (board[y].every((c) => c)) fullRows.push(y);
-  const cleared = fullRows.length;
-  if (cleared > 0) {
-    for (const y of [...fullRows].sort((a, b) => b - a)) {
-      board.splice(y, 1);
-      board.unshift(new Array(COLS).fill(0));
-    }
-    const pts = [0, 100, 300, 500, 800][cleared] * level;
-    lines += cleared;
-    score += pts;
-    level = Math.floor(lines / 10) + 1;
-    shake(0.9 + cleared * 0.5);
-    flash();
-    popText(cleared === 4 ? "TETRIS!" : `+${pts}`, cleared === 4 ? "big" : "");
-  }
   emitStats();
   if (topOut) { endGame(); return; }
+  if (fullRows.length) {
+    // pause the piece flow, let the cleared rows flash & shrink first
+    current = null;
+    syncMeshes();
+    startClearAnim(fullRows);
+  } else {
+    spawn();
+  }
+}
+
+// ---------- line-clear animation (mirrors the landing demo: glow, shrink, pop) ----------
+let clearing = null; // { rows, start, meshes }
+
+function startClearAnim(rows) {
+  const ys = new Set(rows.map((y) => TOTAL - 1 - y + 0.5));
+  const meshes = [];
+  for (const mesh of boardGroup.children)
+    if (ys.has(mesh.position.y)) {
+      mesh.material = mesh.material.clone(); // detach from cache so the glow stays local
+      mesh.material.emissiveIntensity = 0.9;
+      meshes.push(mesh);
+    }
+  clearing = { rows, start: performance.now(), meshes };
+  flash();
+}
+
+function finishClear() {
+  const { rows } = clearing;
+  clearing = null;
+  // ascending: splice+unshift shifts indices, so lower rows must go first
+  for (const y of [...rows].sort((a, b) => a - b)) {
+    board.splice(y, 1);
+    board.unshift(new Array(COLS).fill(0));
+  }
+  const cleared = rows.length;
+  const pts = [0, 100, 300, 500, 800][cleared] * level;
+  lines += cleared;
+  score += pts;
+  level = Math.floor(lines / 10) + 1;
+  shake(0.9 + cleared * 0.5);
+  popText(cleared === 1 ? `+${pts}` : ["", "", "DOUBLE!", "TRIPLE!", "TETRIS!"][cleared], cleared > 1 ? "big" : "");
+  emitStats();
+  dropAcc = 0;
   spawn();
 }
 function dropInterval() {
@@ -222,6 +250,7 @@ export function startGame(m, customSeed) {
   bag = freshBag();
   nextType = takeType();
   board = Array.from({ length: TOTAL }, () => new Array(COLS).fill(0));
+  clearing = null;
   score = 0; lines = 0; level = 1; pieces = 0; gameOver = false;
   startTime = Date.now();
   dropAcc = 0; lastTick = performance.now();
@@ -241,6 +270,8 @@ function emitStats() {
 
 // ---------- three.js scene ----------
 let scene, camera, renderer, boardGroup, ghostGroup, gridMat, playGroup;
+let gridGeo, gridColorAttr;
+const _gridTmpColor = { c: null };
 let shakeAmp = 0;
 const BASE_CAM_X = COLS / 2, BASE_CAM_Y = ROWS / 2 + 2.5;
 let fitZ = 24;
@@ -266,13 +297,16 @@ function initScene(container) {
   scene.add(rim);
   scene.userData.rim = rim;
 
-  // grid
+  // grid — vertex colors so a glow band can sweep up the lines
   const pts = [];
   for (let x = 0; x <= COLS; x++) pts.push(x, 0, -0.5, x, ROWS, -0.5);
   for (let y = 0; y <= ROWS; y++) pts.push(0, y, -0.5, COLS, y, -0.5);
-  const gridGeo = new THREE.BufferGeometry();
+  gridGeo = new THREE.BufferGeometry();
   gridGeo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
-  gridMat = new THREE.LineBasicMaterial({ color: theme.grid, transparent: true, opacity: 0.45 });
+  gridColorAttr = new THREE.BufferAttribute(new Float32Array(pts.length), 3);
+  gridGeo.setAttribute("color", gridColorAttr);
+  gridMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.45 });
+  _gridTmpColor.c = new THREE.Color();
 
   // everything board-related lives here; shifted down to reclaim top space for HUD
   playGroup = new THREE.Group();
@@ -295,8 +329,8 @@ function resize() {
   renderer.setSize(w, h);
   camera.aspect = w / h;
   // fit board: adjust distance
-  const fitH = (ROWS / 2 + 0.6) / Math.tan((camera.fov * Math.PI) / 360);
-  const fitW = (COLS / 2 + 0.55) / (Math.tan((camera.fov * Math.PI) / 360) * camera.aspect);
+  const fitH = (ROWS / 2 + 0.25) / Math.tan((camera.fov * Math.PI) / 360);
+  const fitW = (COLS / 2 + 0.2) / (Math.tan((camera.fov * Math.PI) / 360) * camera.aspect);
   fitZ = Math.max(fitH, fitW);
   camera.position.z = fitZ;
   camera.updateProjectionMatrix();
@@ -397,7 +431,12 @@ function flash() {
 // main loop: gravity + camera shake
 function tick(now) {
   requestAnimationFrame(tick);
-  if (running) {
+  if (clearing) {
+    const k = Math.min(1, (now - clearing.start) / 320);
+    for (const mesh of clearing.meshes) mesh.scale.setScalar(Math.max(0.001, 1 - k * k));
+    if (k >= 1) finishClear();
+  }
+  if (running && current) {
     dropAcc += now - lastTick;
     if (dropAcc >= dropInterval()) {
       dropAcc = 0;
@@ -423,10 +462,19 @@ function tick(now) {
     camera.position.set(BASE_CAM_X, BASE_CAM_Y, fitZ);
   }
 
-  // grid color pulse toward accent
-  if (gridMat && baseGridColor) {
-    const k = 0.22 * (0.5 + 0.5 * Math.sin(now * 0.0012));
-    gridMat.color.copy(baseGridColor).lerp(accentColor, k);
+  // grid: breathing opacity + glow band sweeping up (horizontal lines light row by row)
+  if (gridColorAttr && baseGridColor) {
+    gridMat.opacity = 0.42 + 0.08 * Math.sin(now * 0.0011);
+    const band = (((now * 0.00028) % 1) * (ROWS + 10)) - 5; // travels bottom -> top with a pause off-board
+    const pos = gridGeo.getAttribute("position");
+    const c = _gridTmpColor.c;
+    for (let i = 0; i < pos.count; i++) {
+      const d = Math.abs(pos.getY(i) - band);
+      const k = Math.max(0, 1 - d / 2.4);
+      c.copy(baseGridColor).lerp(accentColor, 0.1 + 0.55 * k * k);
+      gridColorAttr.setXYZ(i, c.r, c.g, c.b);
+    }
+    gridColorAttr.needsUpdate = true;
   }
 
   renderer?.render(scene, camera);
