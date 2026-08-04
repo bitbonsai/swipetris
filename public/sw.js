@@ -1,4 +1,4 @@
-const CACHE = "swipetris-v16";
+const CACHE = "swipetris-v17";
 const ASSETS = ["/", "/index.html", "/landing.css", "/landing.js", "/bg.js", "/play", "/play.html", "/about", "/about.html", "/scores", "/scores.html", "/scores.js", "/style.css", "/app.js", "/manifest.json", "/icon.svg", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png", "/qr.svg", "/vendor/alpinejs.esm.js", "/vendor/three.module.min.js", "/vendor/three.core.min.js", "/vendor/RoundedBoxGeometry.js"];
 
 self.addEventListener("install", (e) => {
@@ -11,12 +11,22 @@ self.addEventListener("activate", (e) => {
   );
   self.clients.claim();
 });
-// stale-while-revalidate: serve cache instantly, refresh it in the background
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (url.pathname.startsWith("/api/") || e.request.method !== "GET") return; // always network
   e.respondWith(
     caches.open(CACHE).then(async (cache) => {
+      // App-shell HTML must be fresh on every online launch. Serving it stale
+      // first meant a PWA needed a second launch before it saw a deployment.
+      if (e.request.mode === "navigate") {
+        try {
+          const res = await fetch(e.request);
+          if (res.ok && url.origin === location.origin) cache.put(e.request, res.clone());
+          return res;
+        } catch {
+          return (await cache.match(e.request)) ?? Response.error();
+        }
+      }
       const hit = await cache.match(e.request);
       const refresh = fetch(e.request)
         .then((res) => {

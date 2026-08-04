@@ -86,7 +86,7 @@
   <script type="module" src="/scores.js?v=14"></script>
   <script type="module" src="/bg.js?v=14"></script>
   <script>
-    if ("serviceWorker" in navigator && location.hostname !== "localhost") navigator.serviceWorker.register("/sw.js");
+    if ("serviceWorker" in navigator && location.hostname !== "localhost") navigator.serviceWorker.register("/sw.js?v=17", { updateViaCache: "none" });
   </script>
 </body>
 </html>

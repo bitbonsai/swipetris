@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="/style.css?v=14">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
-    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=16";
+    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=17";
 
     window.Alpine = Alpine;
     Alpine.data("ui", () => ({
@@ -319,7 +319,7 @@
 
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
-      navigator.serviceWorker.register("/sw.js");
+      navigator.serviceWorker.register("/sw.js?v=17", { updateViaCache: "none" });
     }
   </script>
 </body>
