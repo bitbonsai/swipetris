@@ -155,11 +155,21 @@ export function setPaused(v) {
   }
 }
 
-function freshBag() {
+function dailyOpeningType(date = new Date()) {
+  // Cycle the opening piece by calendar day, so consecutive dailies never
+  // look identical from the current + next pieces shown at launch.
+  const day = Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000);
+  return TYPES[((day % TYPES.length) + TYPES.length) % TYPES.length];
+}
+function freshBag(openingType) {
   const b = [...TYPES];
   for (let i = b.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [b[i], b[j]] = [b[j], b[i]];
+  }
+  if (openingType) {
+    const i = b.indexOf(openingType);
+    [b[i], b[b.length - 1]] = [b[b.length - 1], b[i]]; // takeType() pops first
   }
   return b;
 }
@@ -338,7 +348,7 @@ export function startGame() {
   mode = "daily";
   seed = dailySeed();
   rng = mulberry32(seed);
-  bag = freshBag();
+  bag = freshBag(dailyOpeningType());
   nextType = takeType();
   board = Array.from({ length: TOTAL }, () => new Array(COLS).fill(0));
   clearing = null;
