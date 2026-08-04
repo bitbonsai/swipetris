@@ -328,6 +328,12 @@ function dropInterval() {
   return Math.max(60, 1000 * Math.pow(0.85, level - 1));
 }
 
+// A game keeps its original board until the UI deliberately starts the next daily.
+// This lets the PWA notice a local-midnight rollover after it has been left open.
+export function hasDailyRolledOver() {
+  return mode === "daily" && seed !== dailySeed();
+}
+
 export function startGame() {
   mode = "daily";
   seed = dailySeed();

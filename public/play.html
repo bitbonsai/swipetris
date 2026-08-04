@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="/style.css?v=14">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
-    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed } from "/app.js?v=14";
+    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=15";
 
     window.Alpine = Alpine;
     Alpine.data("ui", () => ({
@@ -41,6 +41,7 @@
         lastResult: null,
         muted: localStorage.getItem("swipetris-muted") === "1",
         bestTick: 0, newBest: false, countdown: "", dayBest: 0, beatDay: false,
+        rolloverTimer: null, refreshingDaily: false,
 
         get best() {
           this.bestTick;
@@ -60,6 +61,11 @@
           };
           tickCountdown();
           setInterval(tickCountdown, 30000);
+          this.scheduleDailyRollover();
+          window.addEventListener("online", () => this.refreshDaily());
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") this.refreshDaily();
+          });
           window.addEventListener("stats", (e) => {
             this.score = e.detail.score; this.lines = e.detail.lines; this.level = e.detail.level;
             if (!this.beatDay && this.dayBest > 0 && this.score > this.dayBest) this.beatDay = true;
@@ -86,6 +92,29 @@
             this.play();
           }
         },
+        scheduleDailyRollover() {
+          clearTimeout(this.rolloverTimer);
+          const midnight = new Date();
+          midnight.setHours(24, 0, 0, 100);
+          this.rolloverTimer = setTimeout(async () => {
+            await this.refreshDaily();
+            this.scheduleDailyRollover();
+          }, midnight - Date.now());
+        },
+        async refreshDaily() {
+          if (this.refreshingDaily || !hasDailyRolledOver() || !navigator.onLine) return;
+          this.refreshingDaily = true;
+          try {
+            // The service worker never caches API calls: confirm the PWA is online
+            // before discarding yesterday's in-progress board.
+            const res = await fetch(`/api/leaderboard?mode=daily&seed=${dailySeed()}`, { cache: "no-store" });
+            if (res.ok && hasDailyRolledOver()) this.play();
+          } catch {
+            // Keep the existing board while offline; retry on reconnect or focus.
+          } finally {
+            this.refreshingDaily = false;
+          }
+        },
         setSound(on) {
           this.muted = !on;
           setMuted(this.muted);
@@ -108,6 +137,7 @@
           this.state = "playing";
           this.sheet = false;
           this.beatDay = false;
+          this.dayBest = 0;
           this.loadDayBest();
           startGame();
           if (!this.settingsHintSeen) {
@@ -119,7 +149,7 @@
         },
         async share() {
           const r = this.lastResult;
-          const s = String(dailySeed());
+          const s = String(r.seed);
           const label = `Daily ${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6)}`;
           const text = `swipetris ${label}\n${r.score.toLocaleString()} pts · ${r.lines} lines · lv ${r.level}\nhttps://swipetris.com`;
           if (navigator.share) {
@@ -144,7 +174,8 @@
           }
         },
         async loadBoard() {
-          const res = await fetch(`/api/leaderboard?mode=daily&seed=${dailySeed()}`);
+          const boardSeed = this.lastResult?.seed ?? dailySeed();
+          const res = await fetch(`/api/leaderboard?mode=daily&seed=${boardSeed}`);
           if (res.ok) this.leaderboard = (await res.json()).leaderboard;
         },
       }));
