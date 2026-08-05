@@ -78,7 +78,7 @@ app.post("/api/score", async (c) => {
 app.get("/api/leaderboard", async (c) => {
   const mode = c.req.query("mode") ?? "daily";
   const seed = Number(c.req.query("seed") ?? "0");
-  // best run per name — one leaderboard slot per player
+  // best run per name: one leaderboard slot per player
   const rows = await db.all(sql`
     SELECT id, name, mode, seed, score, lines, level, pieces
     FROM scores s
@@ -120,7 +120,7 @@ app.get("/api/daily-scores", async (c) => {
   return c.json({ dailyScores: [...bySeed.values()] });
 });
 
-// no-store on HTML, revalidate js/css — stale app.js against fresh HTML breaks module imports
+// no-store on HTML, revalidate js/css; stale app.js against fresh HTML breaks module imports
 app.use("*", async (c, next) => {
   await next();
   const ct = c.res.headers.get("content-type") ?? "";

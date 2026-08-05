@@ -1,4 +1,4 @@
-/* swipetris landing — arcade cabinet in your pocket */
+/* swipetris landing: arcade cabinet in your pocket */
 
 @font-face {
   font-family: "Press Start 2P";
@@ -652,7 +652,7 @@ main, footer { position: relative; z-index: 1; }
   gap: 42px;
 }
 
-/* no panels — sections float on the page */
+/* no panels; sections float on the page */
 .card { position: relative; }
 .card h3 {
   font-family: var(--pixel);
@@ -665,7 +665,7 @@ main, footer { position: relative; z-index: 1; }
 .card p { font-size: 13.5px; line-height: 1.75; color: var(--dim); }
 .card p .fine { font-size: 11px; }
 
-/* tetromino icons — 4 blocks each */
+/* tetromino icons with 4 blocks each */
 .piece-icon {
   display: grid;
   gap: 2px;

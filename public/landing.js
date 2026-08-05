@@ -270,12 +270,12 @@ async function attractLoop() {
     render();
     await sleep(900);
 
-    // S: rotate vertical, slot into the staircase — double line clear
+    // S: rotate vertical and slot into the staircase for a double line clear
     drawNext("I");
     await playPiece("S", 2, { 2: [{ g: "tap" }], 4: [{ g: "drag", to: 3 }], 6: [{ g: "flick" }] });
     await sleep(500);
 
-    // I: rotate vertical, drop into the single-column well — line clear
+    // I: rotate vertical and drop into the single-column well for a line clear
     drawNext("T");
     await playPiece("I", 2, { 2: [{ g: "tap" }], 4: [{ g: "drag", to: 4 }], 6: [{ g: "flick" }] });
     await sleep(500);

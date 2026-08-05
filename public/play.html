@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>swipetris</title>
   <meta name="theme-color" content="#0f1115">
-  <meta property="og:title" content="swipetris — play the daily">
+  <meta property="og:title" content="swipetris | play the daily">
   <meta property="og:description" content="Same board for every player on earth. Crack the top 5, punch in your five letters.">
   <meta property="og:image" content="https://swipetris.com/og.png">
   <meta property="og:url" content="https://swipetris.com/play">
@@ -18,10 +18,10 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/style.css?v=15">
+  <link rel="stylesheet" href="/style.css?v=16">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
-    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=17";
+    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=18";
 
     window.Alpine = Alpine;
     Alpine.data("ui", () => ({
@@ -319,7 +319,7 @@
 
       <aside id="desk-panel" aria-label="Desktop guide">
         <span class="panel-label">BUILT FOR THUMBS</span>
-        <img src="/qr.svg" alt="QR code — open swipetris.com on your phone" width="140" height="140">
+        <img src="/qr.svg" alt="QR code to open swipetris.com on your phone" width="140" height="140">
         <p class="panel-note">scan to play on your phone,<br>then add it to your home screen</p>
         <span class="panel-label panel-label-keys">OR PLAY WITH KEYBOARD</span>
         <ul class="keys">
@@ -334,7 +334,7 @@
 
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
-      navigator.serviceWorker.register("/sw.js?v=21", { updateViaCache: "none" });
+      navigator.serviceWorker.register("/sw.js?v=22", { updateViaCache: "none" });
     }
   </script>
 </body>

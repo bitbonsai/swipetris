@@ -131,7 +131,7 @@ function buzz(ms) {
 }
 
 // space-invaders heartbeat: every gravity step thumps, pitched per piece,
-// alternating two tones — and it naturally speeds up with the level
+// alternating two tones; it naturally speeds up with the level
 const HEART = { I: 110, O: 98, T: 104, S: 92, Z: 88, J: 82, L: 118 };
 let heartFlip = false;
 function heartbeat(type) {
@@ -250,7 +250,7 @@ function softDropStep() {
     emitStats();
     return true;
   }
-  return false; // grounded — lock delay takes over
+  return false; // grounded; lock delay takes over
 }
 function hardDrop() {
   if (!running || !current || paused) return;
@@ -401,7 +401,7 @@ function initScene(container) {
   scene.add(rim);
   scene.userData.rim = rim;
 
-  // grid — vertex colors so a glow band can sweep up the lines
+  // grid with vertex colors so a glow band can sweep up the lines
   const pts = [];
   for (let x = 0; x <= COLS; x++) pts.push(x, 0, -0.5, x, ROWS, -0.5);
   for (let y = 0; y <= ROWS; y++) pts.push(0, y, -0.5, COLS, y, -0.5);
@@ -639,7 +639,7 @@ function initInput(el) {
   const cellPx = () => el.clientWidth / COLS;
 
   el.addEventListener("pointerdown", (e) => {
-    // overlays and the settings sheet live inside el — don't steal their clicks
+    // overlays and the settings sheet live inside el; don't steal their clicks
     if (!running || paused || e.target.closest("#sheet, #sheet-backdrop")) return;
     el.setPointerCapture(e.pointerId);
     start = { x: e.clientX, y: e.clientY, t: performance.now() };

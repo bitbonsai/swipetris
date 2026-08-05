@@ -510,7 +510,7 @@ button.ghost:hover { opacity: 1; border-color: var(--accent); }
 .board-list li:nth-child(odd) { background: var(--panel); }
 .board-list .nm { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .board-list b { font-variant-numeric: tabular-nums; }
-/* colored numbers, no medals — matches the landing hiscores */
+/* colored numbers, no medals, matching the landing hiscores */
 .rank { font-size: 0.72rem; opacity: 0.5; text-align: center; }
 .rank.r1, .rank.r2, .rank.r3 { opacity: 1; }
 .rank.r1 { color: var(--c-O, #ffd75e); text-shadow: 0 0 8px color-mix(in srgb, var(--c-O, #ffd75e) 55%, transparent); }

@@ -71,8 +71,8 @@ All times below target both Europe and the US. `15:00 CEST` is approximately `09
 | Order | Channel | Recommended time | Purpose |
 |---|---|---|---|
 | 0 | 5–10 direct testers | 2–3 days before launch | Find broken controls and confusing copy |
-| 1 | r/playmygame | Wednesday, 15:00 CEST / 09:00 ET | Ask for honest control and game-feel feedback |
-| 2 | r/WebGames | Wednesday, 15:00 CEST / 09:00 ET | Reach people already willing to play browser games |
+| 1 | r/playmygame ✅ | Wednesday, 15:00 CEST / 09:00 ET | Ask for honest control and game-feel feedback |
+| 2 | r/WebGames ✅ | Wednesday, 15:00 CEST / 09:00 ET | Reach people already willing to play browser games |
 | 3 | LinkedIn | Thursday, 08:30–10:00 in the poster’s local time | Tell the personal founder story to the warm network |
 | 4 | r/SideProject | Thursday, 15:00 CEST / 09:00 ET | Tell the product and build story |
 | 5 | Show HN | Following Tuesday–Thursday, 14:00–16:00 CEST / 08:00–10:00 ET | Technical launch after early feedback is fixed |
@@ -119,15 +119,15 @@ Avoid r/gamedev as a launch link unless its current rules explicitly provide a s
 
 **Title**
 
-> Swipetris — a free, ad-free daily falling-block game built for one thumb
+> Swipetris: a free, ad-free daily falling-block game built for one thumb
 
-**Body — required template**
+**Body: required template**
 
 > **Game Title:** Swipetris
 >
 > **Playable Link:** https://swipetris.com/play
 >
-> **Platform:** Web — mobile-first PWA with desktop keyboard support. Add the **Web** flair after posting.
+> **Platform:** Web, a mobile-first PWA with desktop keyboard support. Add the **Web** flair after posting.
 >
 > **Description:** Swipetris is a gesture-first falling-block game designed for your phone. Drag to move, tap to rotate, and flick down to drop. Think Wordle, but with blocks: every player gets the same seeded piece sequence each day, you can replay as much as you want, and only your best run counts on the daily arcade leaderboard. I grew up playing arcade games in the 1980s and wanted a clean version without ads, coins, subscriptions, accounts, or app-store friction, so I built the version I wanted to play. It installs to your home screen, works offline after the first visit, and has four visual themes. There are no cookies, tracking scripts, or product analytics. The only game data sent to the server is for leaderboard requests and score submissions. I would especially value feedback on whether the one-thumb controls feel discoverable and precise, whether any gestures fire accidentally, and whether the shared daily board gives you a reason to return tomorrow.
 >
@@ -143,7 +143,7 @@ Avoid r/gamedev as a launch link unless its current rules explicitly provide a s
 
 **Title**
 
-> [OC] Swipetris — a free, ad-free daily falling-block game built for one thumb
+> [OC] Swipetris. a free, ad-free daily falling-block game built for one thumb
 
 **Body**
 
@@ -187,7 +187,7 @@ This may need to be a link post with no body. Keep the title descriptive rather 
 
 **Title**
 
-> Swipetris — a free daily falling-block game for your phone with no ads or account
+> Swipetris: a free daily falling-block game for your phone with no ads or account
 
 **Creator disclosure comment**
 
@@ -207,7 +207,7 @@ Attach a native 10–15 second gameplay video rather than relying on a link prev
 >
 > Everyone gets the same piece sequence each day, so the leaderboard is a fair fight. It is free, browser-based, installable, works offline, and has no ads or account.
 >
-> I’m looking for feedback on game feel—especially lock delay, flick sensitivity, and whether the 3D board helps or distracts.
+> I’m looking for feedback on game feel, especially lock delay, flick sensitivity, and whether the 3D board helps or distracts.
 >
 > https://swipetris.com
 >
@@ -231,11 +231,11 @@ Attach a native 10–15 second gameplay video rather than relying on a link prev
 >
 > Contributions and critiques are welcome, particularly around touch accessibility, offline behavior, and lightweight leaderboard abuse prevention.
 
-### r/tetris — only with moderator approval
+### r/tetris: only with moderator approval
 
 **Title**
 
-> I made a gesture-first daily falling-block web game — could experienced players critique the controls?
+> I made a gesture-first daily falling-block web game. Could experienced players critique the controls?
 
 **Body**
 
@@ -267,7 +267,7 @@ Do not ask anybody to upvote or comment. HN explicitly prohibits that.
 
 ### First comment
 
-> Hi HN — I grew up in the arcades of the 1980s and still love games that are simply a game, not a funnel.
+> Hi HN. I grew up in the arcades of the 1980s and still love games that are simply a game, not a funnel.
 >
 > I wanted a good falling-block game for my phone, but the options I found tended to come with ads, subscriptions, virtual currencies, tracking, or app-store friction. So I built the version I wanted.
 >
@@ -315,7 +315,7 @@ Post Tuesday through Thursday at `08:30–10:00` in the time zone where most of 
 > → installs on your home screen and works offline<br>
 > → no ads, cookies, account, subscription, or product analytics
 >
-> It is free—as a game like this should be—and now open source under MIT.
+> It is free, as a game like this should be, and now open source under MIT.
 >
 > Play: https://swipetris.com<br>
 > Source: https://github.com/bitbonsai/swipetris
@@ -396,7 +396,7 @@ Let players share “7-day streak” cards. Do not punish missed days with guilt
 
 ### Priority 2: turn installs into retention
 
-After a player completes a second session—not immediately on first load—show the simple iPhone/Android home-screen instructions. The pitch is “tomorrow’s board is one tap away,” not “install our app.”
+After a player completes a second session, not immediately on first load, show the simple iPhone/Android home-screen instructions. The pitch is “tomorrow’s board is one tap away,” not “install our app.”
 
 ### Priority 3: recurring content
 
