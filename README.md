@@ -5,12 +5,11 @@
 </p>
 
 <p align="center">
-  A free, no-ads, gesture-first daily falling-blocks challenge that lives on your phone.<br>
-  <a href="https://swipetris.com"><strong>Play at swipetris.com</strong></a>
+  A free, no-ads, gesture-first daily falling-blocks challenge that lives on your phone.<br><br>
+  <a href="https://swipetris.com/play"><img src="public/play-button.svg" alt="Play now" width="255"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/bitbonsai/swipetris/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/bitbonsai/swipetris/total?style=plastic&amp;logo=github&amp;color=22d3ee"></a>
   <a href="https://github.com/bitbonsai/swipetris/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/bitbonsai/swipetris?style=plastic&amp;logo=github&amp;color=facc15"></a>
   <a href="package.json"><img alt="Version" src="https://img.shields.io/github/package-json/v/bitbonsai/swipetris?style=plastic&amp;label=version&amp;color=a855f7"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/bitbonsai/swipetris?style=plastic&amp;color=3b82f6"></a>
@@ -18,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="public/gestures.gif" alt="Drag to move, tap to rotate, flick to drop" width="540">
+  <a href="https://swipetris.com/play"><img src="public/phone-demo.gif" alt="Swipetris daily game demo" width="220"></a>
 </p>
 
 ## What it is
@@ -51,7 +50,7 @@ The README lockup is rendered from the landing-page `.brand-lockup` with [Vercel
 bun run generate:brand
 ```
 
-This updates `public/brand.svg` from the logo markup in `public/index.html`.
+This updates `public/brand.svg` and `public/play-button.svg` from the brand and CTA markup in `public/index.html`.
 
 ## Run locally
 

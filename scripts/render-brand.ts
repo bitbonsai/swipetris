@@ -12,8 +12,9 @@ const letters = [...lockupHtml.matchAll(/<span class="l(\d)">([^<])<\/span>/g)].
   ([, color, letter]) => ({ color: Number(color), letter }),
 );
 const blockCount = [...lockupHtml.matchAll(/<i><\/i>/g)].length;
-if (letters.map(({ letter }) => letter).join("") !== "SWIPETRIS" || blockCount !== 4) {
-  throw new Error("Unexpected brand-lockup markup");
+const ctaLabel = index.match(/<a class="cta"[^>]*>[\s\S]*?<span>([^<]+)<\/span>/)?.[1];
+if (letters.map(({ letter }) => letter).join("") !== "SWIPETRIS" || blockCount !== 4 || !ctaLabel) {
+  throw new Error("Unexpected landing-page brand markup");
 }
 
 const font = await readFile(
@@ -122,5 +123,59 @@ const svg = await satori(
   },
 );
 
-await writeFile(new URL("public/brand.svg", root), `${svg}\n`);
-console.log("generated public/brand.svg from public/index.html");
+const playButton = await satori(
+  {
+    type: "div",
+    props: {
+      style: {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      },
+      children: {
+        type: "div",
+        props: {
+          style: {
+            width: 320,
+            height: 76,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            borderRadius: 12,
+            color: "#0c0d10",
+            background: "linear-gradient(180deg, #82eaa0 0%, #4ade80 45%, #3aad64 100%)",
+            boxShadow: "inset 0 3px 0 rgba(255,255,255,.4), inset 0 -5px 0 rgba(0,0,0,.28), 0 6px 16px rgba(0,0,0,.35)",
+            fontFamily: "Press Start 2P",
+            fontSize: 18,
+          },
+          children: [
+            {
+              type: "svg",
+              props: {
+                width: 24,
+                height: 24,
+                viewBox: "0 0 24 24",
+                children: { type: "path", props: { d: "m8 5 11 7-11 7V5Z", fill: "currentColor" } },
+              },
+            },
+            ctaLabel,
+          ],
+        },
+      },
+    },
+  },
+  {
+    width: 340,
+    height: 96,
+    fonts: [{ name: "Press Start 2P", data: font, weight: 400, style: "normal" }],
+  },
+);
+
+await Promise.all([
+  writeFile(new URL("public/brand.svg", root), `${svg}\n`),
+  writeFile(new URL("public/play-button.svg", root), `${playButton}\n`),
+]);
+console.log("generated public/brand.svg and public/play-button.svg from public/index.html");
