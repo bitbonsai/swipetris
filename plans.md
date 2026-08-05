@@ -119,25 +119,25 @@ Avoid r/gamedev as a launch link unless its current rules explicitly provide a s
 
 **Title**
 
-> I made a free daily falling-block game for phones. does the one-thumb control feel right?
+> Swipetris — a free, ad-free daily falling-block game built for one thumb
 
-**Body**
+**Body — required template**
 
-> I grew up playing arcade games in the 80s and wanted a simple falling-block game on my phone. Most of the ones I found were wrapped in ads, coins, subscriptions, or tracking, so I made the version I wanted.
+> **Game Title:** Swipetris
 >
-> Swipetris uses drag to move, tap to rotate, and a downward flick to drop. Like Wordle, everyone gets the same sequence each day. You can replay, but only your best run counts on the daily leaderboard.
+> **Playable Link:** https://swipetris.com/play
 >
-> It is a PWA, works offline, has no account, cookies, ads, or product analytics, and the code is MIT licensed.
+> **Platform:** Web — mobile-first PWA with desktop keyboard support. Add the **Web** flair after posting.
 >
-> Play: https://swipetris.com
+> **Description:** Swipetris is a gesture-first falling-block game designed for your phone. Drag to move, tap to rotate, and flick down to drop. Think Wordle, but with blocks: every player gets the same seeded piece sequence each day, you can replay as much as you want, and only your best run counts on the daily arcade leaderboard. I grew up playing arcade games in the 1980s and wanted a clean version without ads, coins, subscriptions, accounts, or app-store friction, so I built the version I wanted to play. It installs to your home screen, works offline after the first visit, and has four visual themes. There are no cookies, tracking scripts, or product analytics. The only game data sent to the server is for leaderboard requests and score submissions. I would especially value feedback on whether the one-thumb controls feel discoverable and precise, whether any gestures fire accidentally, and whether the shared daily board gives you a reason to return tomorrow.
 >
-> Source: https://github.com/bitbonsai/swipetris
+> **Free to Play Status:**
 >
-> I would especially value feedback on:
+> - [x] Free to play
+> - [ ] Demo/Key available
+> - [ ] Paid
 >
-> 1. Did the controls make sense without instructions?
-> 2. Did any gesture fire accidentally?
-> 3. Would the daily board bring you back tomorrow?
+> **Involvement:** I designed and built the entire game: the three.js gameplay and rendering, touch and keyboard controls, daily seeded challenge, score validation and leaderboard, PWA/offline behavior, landing pages, and backend. I am also the project maintainer. The source is available under the MIT License at https://github.com/bitbonsai/swipetris.
 
 ### r/WebGames
 
