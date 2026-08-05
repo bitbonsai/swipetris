@@ -4,19 +4,21 @@
   </a>
 </p>
 
-<h1 align="center">swipetris</h1>
-
 <p align="center">
   A free, no-ads, gesture-first daily falling-blocks challenge that lives on your phone.<br>
   <a href="https://swipetris.com"><strong>Play at swipetris.com</strong></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/bitbonsai/swipetris/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/bitbonsai/swipetris/total?style=for-the-badge&amp;color=22d3ee"></a>
-  <a href="https://github.com/bitbonsai/swipetris/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/bitbonsai/swipetris?style=for-the-badge&amp;color=facc15"></a>
-  <a href="package.json"><img alt="Version" src="https://img.shields.io/github/package-json/v/bitbonsai/swipetris?style=for-the-badge&amp;color=a855f7"></a>
-  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/bitbonsai/swipetris?style=for-the-badge&amp;color=3b82f6"></a>
-  <a href="https://swipetris.com"><img alt="Free" src="https://img.shields.io/badge/price-free-4ade80?style=for-the-badge"></a>
+  <a href="https://github.com/bitbonsai/swipetris/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/bitbonsai/swipetris/total?style=plastic&amp;logo=github&amp;color=22d3ee"></a>
+  <a href="https://github.com/bitbonsai/swipetris/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/bitbonsai/swipetris?style=plastic&amp;logo=github&amp;color=facc15"></a>
+  <a href="package.json"><img alt="Version" src="https://img.shields.io/github/package-json/v/bitbonsai/swipetris?style=plastic&amp;label=version&amp;color=a855f7"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/bitbonsai/swipetris?style=plastic&amp;color=3b82f6"></a>
+  <a href="https://swipetris.com"><img alt="Free with no ads" src="https://img.shields.io/badge/free-no%20ads-4ade80?style=plastic"></a>
+</p>
+
+<p align="center">
+  <img src="public/gestures.gif" alt="Drag to move, tap to rotate, flick to drop" width="540">
 </p>
 
 ## What it is
