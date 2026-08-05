@@ -265,6 +265,10 @@ Do not ask anybody to upvote or comment. HN explicitly prohibits that.
 
 > https://swipetris.com
 
+**Text field**
+
+> Leave this blank. This is a URL submission, so put the context in the first comment immediately after submitting.
+
 ### First comment
 
 > Hi HN, I made this after trying to find a straightforward falling-block game for my phone. I tried a few, got annoyed by the ads and virtual currencies, and decided to build one as a web app instead. I grew up playing arcade games in the 80s, so this is very much the version I wanted for myself.
