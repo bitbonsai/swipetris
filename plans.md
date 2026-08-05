@@ -259,7 +259,7 @@ Do not ask anybody to upvote or comment. HN explicitly prohibits that.
 
 **Title**
 
-> Show HN: Swipetris: Wordle-like daily falling blocks for your phone
+> Show HN: Swipetris, a daily falling-block game for phones
 
 **URL**
 
@@ -267,17 +267,15 @@ Do not ask anybody to upvote or comment. HN explicitly prohibits that.
 
 ### First comment
 
-> Hi HN. I grew up in the arcades of the 1980s and still love games that are simply a game, not a funnel.
+> Hi HN, I made this after trying to find a straightforward falling-block game for my phone. I tried a few, got annoyed by the ads and virtual currencies, and decided to build one as a web app instead. I grew up playing arcade games in the 80s, so this is very much the version I wanted for myself.
 >
-> I wanted a good falling-block game for my phone, but the options I found tended to come with ads, subscriptions, virtual currencies, tracking, or app-store friction. So I built the version I wanted.
+> The controls are drag to move, tap to rotate, and flick down to drop. Each date produces the same piece sequence for everyone. You can play as often as you like, but the leaderboard only shows the best run under each set of five initials.
 >
-> Swipetris uses one-thumb gestures: drag to move, tap to rotate, flick down to drop. The Wordle-inspired part is the daily challenge: everybody gets the same seeded piece sequence for that date. You can replay, but only your best run per initials gets a leaderboard slot.
+> There is no signup, advertising, subscription, cookie, or product analytics. It works offline after the first load. The leaderboard is the only networked feature.
 >
-> It is an installable offline PWA with no account, cookies, ads, subscription, or product analytics. The only application data sent to the server is a leaderboard request or score submission.
+> The frontend is three.js with Alpine for the UI. Production is static Cloudflare Pages. I ended up calling Turso's raw HTTP API from Pages Functions because npm imports caused the no-build deployment to silently serve static files only. The source is here: https://github.com/bitbonsai/swipetris
 >
-> The game is three.js with an Alpine UI. Local development uses Bun/Hono; production is static Cloudflare Pages plus dependency-free Pages Functions and Turso. The source is MIT licensed: https://github.com/bitbonsai/swipetris
->
-> I would particularly like feedback on whether the touch controls feel discoverable and whether the shared daily sequence creates enough reason to return.
+> The part I am least sure about is the touch input. Tap, horizontal drag, and downward flick all share the same pointer surface. If you try it on a phone, I would like to hear where it misreads you.
 
 ### Questions to prepare for
 
