@@ -16,7 +16,7 @@ Swipetris includes the following vendored software in `public/vendor/`.
 - Source: <https://github.com/mrdoob/three.js>
 - Files: `public/vendor/three.core.min.js`, `public/vendor/three.module.min.js`, and `public/vendor/RoundedBoxGeometry.js`
 - License: MIT
-- Copyright © 2010–2025 three.js authors
+- Copyright © 2010-2025 three.js authors
 
 ## MIT license text
 

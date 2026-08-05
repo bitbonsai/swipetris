@@ -59,7 +59,7 @@ The privacy claim is central, so it needs to be airtight.
 - [x] Test the full first-run flow on a real iPhone and Android phone using pointer events.
 - [x] Make failed score submissions understandable instead of silently doing nothing.
 - [x] Confirm the daily board, rollover, offline launch, replay, and score sharing all work.
-- [x] Prepare a 10–15 second vertical gameplay clip, the animated gesture demo, two mobile screenshots, and the logo.
+- [x] Prepare a 10-15 second vertical gameplay clip, the animated gesture demo, two mobile screenshots, and the logo.
 - [x] Make sure the creator story and source link are easy to find from the landing page.
 
 ## Launch order
@@ -70,13 +70,13 @@ All times below target both Europe and the US. `15:00 CEST` is approximately `09
 
 | Order | Channel | Recommended time | Purpose |
 |---|---|---|---|
-| 0 | 5–10 direct testers | 2–3 days before launch | Find broken controls and confusing copy |
+| 0 | 5-10 direct testers | 2-3 days before launch | Find broken controls and confusing copy |
 | 1 | r/playmygame ✅ | Wednesday, 15:00 CEST / 09:00 ET | Ask for honest control and game-feel feedback |
 | 2 | r/WebGames ✅ | Wednesday, 15:00 CEST / 09:00 ET | Reach people already willing to play browser games |
-| 3 | LinkedIn | Thursday, 08:30–10:00 in the poster’s local time | Tell the personal founder story to the warm network |
+| 3 | LinkedIn | Thursday, 08:30-10:00 in the poster’s local time | Tell the personal founder story to the warm network |
 | 4 | r/SideProject | Thursday, 15:00 CEST / 09:00 ET | Tell the product and build story |
-| 5 | Show HN | Following Tuesday–Thursday, 14:00–16:00 CEST / 08:00–10:00 ET | Technical launch after early feedback is fixed |
-| 6 | r/InternetIsBeautiful | 2–4 days after HN | Broadest Reddit attempt once the experience is proven stable |
+| 5 | Show HN | Following Tuesday through Thursday, 14:00-16:00 CEST / 08:00-10:00 ET | Technical launch after early feedback is fixed |
+| 6 | r/InternetIsBeautiful | 2-4 days after HN | Broadest Reddit attempt once the experience is proven stable |
 | 7 | r/opensource or a PWA community | Week 2 | Open-source and architecture angle |
 | 8 | r/IndieGaming | Week 2, preferably with native video | Visual game-development angle |
 | 9 | r/tetris | Only after moderator approval | Feedback from expert players, not a promotional blast |
@@ -195,7 +195,7 @@ This may need to be a link post with no body. Keep the title descriptive rather 
 
 ### r/IndieGaming
 
-Attach a native 10–15 second gameplay video rather than relying on a link preview.
+Attach a native 10-15 second gameplay video rather than relying on a link preview.
 
 **Title**
 
@@ -251,7 +251,7 @@ Attach a native 10–15 second gameplay video rather than relying on a link prev
 
 Swipetris is a legitimate Show HN: it is something people can immediately use, it is personal, non-trivial, and has no signup barrier. The official Show HN guidance favors exactly that. Do not submit a launch essay instead of the playable URL.
 
-There is no guaranteed “best time.” A practical window is Tuesday through Thursday, `08:00–10:00 ET` (`14:00–16:00 CEST`). Submit only when you can stay in the thread for the next four hours.
+There is no guaranteed “best time.” A practical window is Tuesday through Thursday, `08:00-10:00 ET` (`14:00-16:00 CEST`). Submit only when you can stay in the thread for the next four hours.
 
 Do not ask anybody to upvote or comment. HN explicitly prohibits that.
 
@@ -259,7 +259,7 @@ Do not ask anybody to upvote or comment. HN explicitly prohibits that.
 
 **Title**
 
-> Show HN: Swipetris – Wordle-like daily falling blocks for your phone
+> Show HN: Swipetris: Wordle-like daily falling blocks for your phone
 
 **URL**
 
@@ -295,7 +295,7 @@ Answer directly, including imperfections. HN responds better to technical honest
 
 ### Main launch post
 
-Post Tuesday through Thursday at `08:30–10:00` in the time zone where most of the poster’s network lives. Use a native vertical gameplay clip or animated gesture demo so the post communicates before anybody clicks. Keep the link in the post; forcing readers to hunt through comments is not worth a speculative algorithm benefit.
+Post Tuesday through Thursday at `08:30-10:00` in the time zone where most of the poster’s network lives. Use a native vertical gameplay clip or animated gesture demo so the post communicates before anybody clicks. Keep the link in the post; forcing readers to hunt through comments is not worth a speculative algorithm benefit.
 
 **Draft**
 
@@ -324,7 +324,7 @@ Post Tuesday through Thursday at `08:30–10:00` in the time zone where most of 
 >
 > #indiedev #PWA #opensource
 
-### Follow-up post, 5–7 days later
+### Follow-up post, 5-7 days later
 
 Do not repost the launch pitch. Share a real lesson, a surprising comment, or a small result.
 
@@ -410,7 +410,7 @@ After a player completes a second session, not immediately on first load, show t
 
 After the core launch:
 
-- Send personal, non-templated notes to 10–15 small retro-arcade, web-game, and mobile-game creators.
+- Send personal, non-templated notes to 10-15 small retro-arcade, web-game, and mobile-game creators.
 - Pitch newsletters covering tiny web games, personal software, PWAs, and humane technology.
 - Publish a short dev.to or personal blog post about making a no-build, offline-first game.
 - Consider Product Hunt only after the result-sharing loop is stronger; it is a launch event, not a retention strategy.
