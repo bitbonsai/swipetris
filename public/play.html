@@ -18,10 +18,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Press+Start+2P&display=swap">
-  <link rel="stylesheet" href="/style.css?v=14">
+  <link rel="stylesheet" href="/style.css?v=15">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
     import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=17";
@@ -37,7 +34,7 @@
         score: 0, lines: 0, level: 1,
         name: (localStorage.getItem("swipetris-name") ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5),
         leaderboard: [],
-        shared: false, submitted: false, rankText: "",
+        shared: false, submitted: false, submitting: false, submitError: "", rankText: "",
         lastResult: null,
         muted: localStorage.getItem("swipetris-muted") === "1",
         bestTick: 0, newBest: false, countdown: "", dayBest: 0, beatDay: false,
@@ -74,7 +71,7 @@
             this.lastResult = e.detail;
             this.state = "over";
             this.gestureHint = false;
-            this.shared = false; this.submitted = false;
+            this.shared = false; this.submitted = false; this.submitting = false; this.submitError = "";
             this.newBest = e.detail.score > 0 && e.detail.score > this.best;
             if (this.newBest) {
               localStorage.setItem("swipetris-best", String(e.detail.score));
@@ -159,18 +156,35 @@
           this.shared = true;
         },
         async submitScore() {
+          if (this.submitting) return;
           const r = this.lastResult;
+          this.submitting = true;
+          this.submitError = "";
           localStorage.setItem("swipetris-name", this.name);
-          const res = await fetch("/api/score", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ name: this.name, ...r }),
-          });
-          if (res.ok) {
+          try {
+            const res = await fetch("/api/score", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ name: this.name, ...r }),
+            });
+            if (!res.ok) {
+              if (res.status === 429) throw new Error("Too many attempts. Wait a minute, then try again.");
+              if (res.status === 422) throw new Error("That score could not be verified. Play again and resubmit your next run.");
+              if (res.status >= 500) throw new Error("The leaderboard is having trouble. Try again in a moment.");
+              throw new Error("That score could not be saved. Check your initials and try again.");
+            }
             const { rank } = await res.json();
             this.submitted = true;
             this.rankText = `#${rank}`;
             await this.loadBoard();
+          } catch (error) {
+            this.submitError = error instanceof TypeError
+              ? "Could not reach the leaderboard. Check your connection and try again."
+              : error instanceof Error
+                ? error.message
+                : "Could not save that score. Try again in a moment.";
+          } finally {
+            this.submitting = false;
           }
         },
         async loadBoard() {
@@ -249,10 +263,11 @@
           </div>
 
           <form x-show="!submitted" @submit.prevent="submitScore()">
-            <input class="initials" x-model="name" @input="name = name.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+            <input class="initials" x-model="name" @input="name = name.toUpperCase().replace(/[^A-Z0-9]/g, ''); submitError = ''"
               maxlength="5" placeholder="PLAYER" autocomplete="off" required>
-            <button type="submit">Save</button>
+            <button type="submit" :disabled="submitting" x-text="submitting ? 'Saving…' : 'Save'">Save</button>
           </form>
+          <p class="submit-error" x-cloak x-show="submitError" x-text="submitError" role="alert"></p>
           <div class="rank-chip" x-show="submitted" x-text="rankText + ' on the board'"></div>
 
           <ol class="board-list" x-show="leaderboard.length">
@@ -319,7 +334,7 @@
 
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
-      navigator.serviceWorker.register("/sw.js?v=20", { updateViaCache: "none" });
+      navigator.serviceWorker.register("/sw.js?v=21", { updateViaCache: "none" });
     }
   </script>
 </body>

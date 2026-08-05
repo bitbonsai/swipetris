@@ -33,7 +33,7 @@ Swipetris is a mobile-first PWA built around one-thumb controls:
 - Submit your best run to the daily arcade leaderboard
 - Install it to your home screen and play offline
 
-There are no accounts, ads, cookies, or analytics. Only leaderboard requests touch the Swipetris server.
+There are no accounts, ads, cookies, tracking, or product analytics. Gameplay stays local; only leaderboard requests and score submissions send game data to the Swipetris server.
 
 ## Stack
 

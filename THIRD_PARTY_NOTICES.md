@@ -40,6 +40,7 @@ SOFTWARE.
 
 ## Web fonts
 
-The site requests **JetBrains Mono** and **Press Start 2P** from Google Fonts at runtime. Both are distributed under the SIL Open Font License 1.1 and are not vendored in this repository.
+The site self-hosts **JetBrains Mono** and **Press Start 2P** in `public/fonts/`. Both are distributed under the SIL Open Font License 1.1.
 
-`public/brand.svg` is generated with Press Start 2P. Copyright 2012 The Press Start 2P Project Authors (cody@zone38.net), with Reserved Font Name “Press Start 2P”. The font is licensed under the [SIL Open Font License 1.1](https://openfontlicense.org/open-font-license-official-text/).
+- Press Start 2P: Copyright 2012 The Press Start 2P Project Authors (cody@zone38.net), with Reserved Font Name “Press Start 2P”. The font is also used to generate `public/brand.svg` and `public/play-button.svg`. See [`public/fonts/Press-Start-2P-OFL.txt`](public/fonts/Press-Start-2P-OFL.txt).
+- JetBrains Mono: Copyright 2020 The JetBrains Mono Project Authors (<https://github.com/JetBrains/JetBrainsMono>). See [`public/fonts/JetBrains-Mono-OFL.txt`](public/fonts/JetBrains-Mono-OFL.txt).

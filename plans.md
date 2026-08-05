@@ -47,20 +47,20 @@ Do not optimize for a one-day traffic spike before the first two are working.
 - Prefer “falling-block game,” “arcade classic,” or “inspired by the game I grew up with.”
 - Do not call the leaderboard cheat-proof. The server rejects implausible submissions, but browser games cannot cryptographically prove a run.
 - Say “only your best run counts,” not “only the best score gets stored.” Multiple runs are stored; the leaderboard displays each name’s best.
-- Avoid “nothing ever leaves your phone.” Leaderboard requests do, and Google Fonts currently receives a font request on first load.
+- Avoid “nothing ever leaves your phone.” Leaderboard requests and score submissions send game data to the server; all fonts and gameplay assets are self-hosted.
 
 ## Fix before broad promotion
 
 The privacy claim is central, so it needs to be airtight.
 
-- [ ] Self-host Press Start 2P and JetBrains Mono instead of loading them from Google Fonts.
-- [ ] Verify the site sets no cookies in a clean browser session.
-- [ ] Confirm Cloudflare analytics and third-party tracking are disabled, or say “no product analytics” rather than “no analytics of any kind.”
-- [ ] Test the full first-run flow on a real iPhone and Android phone using pointer events.
-- [ ] Make failed score submissions understandable instead of silently doing nothing.
-- [ ] Confirm the daily board, rollover, offline launch, replay, and score sharing all work.
-- [ ] Prepare a 10–15 second vertical gameplay clip, the animated gesture demo, two mobile screenshots, and the logo.
-- [ ] Make sure the creator story and source link are easy to find from the landing page.
+- [x] Self-host Press Start 2P and JetBrains Mono instead of loading them from Google Fonts.
+- [x] Verify the site sets no cookies in a clean browser session.
+- [x] Verify there is no Cloudflare Web Analytics beacon or third-party tracking request, and consistently say “no product analytics.”
+- [x] Test the full first-run flow on a real iPhone and Android phone using pointer events.
+- [x] Make failed score submissions understandable instead of silently doing nothing.
+- [x] Confirm the daily board, rollover, offline launch, replay, and score sharing all work.
+- [x] Prepare a 10–15 second vertical gameplay clip, the animated gesture demo, two mobile screenshots, and the logo.
+- [x] Make sure the creator story and source link are easy to find from the landing page.
 
 ## Launch order
 
@@ -71,7 +71,7 @@ All times below target both Europe and the US. `15:00 CEST` is approximately `09
 | Order | Channel | Recommended time | Purpose |
 |---|---|---|---|
 | 0 | 5–10 direct testers | 2–3 days before launch | Find broken controls and confusing copy |
-| 1 | r/playmygame | Tuesday, 15:00 CEST / 09:00 ET | Ask for honest control and game-feel feedback |
+| 1 | r/playmygame | Wednesday, 15:00 CEST / 09:00 ET | Ask for honest control and game-feel feedback |
 | 2 | r/WebGames | Wednesday, 15:00 CEST / 09:00 ET | Reach people already willing to play browser games |
 | 3 | LinkedIn | Thursday, 08:30–10:00 in the poster’s local time | Tell the personal founder story to the warm network |
 | 4 | r/SideProject | Thursday, 15:00 CEST / 09:00 ET | Tell the product and build story |
@@ -119,7 +119,7 @@ Avoid r/gamedev as a launch link unless its current rules explicitly provide a s
 
 **Title**
 
-> I made a free daily falling-block game for phones — does the one-thumb control feel right?
+> I made a free daily falling-block game for phones. does the one-thumb control feel right?
 
 **Body**
 
@@ -130,6 +130,8 @@ Avoid r/gamedev as a launch link unless its current rules explicitly provide a s
 > It is a PWA, works offline, has no account, cookies, ads, or product analytics, and the code is MIT licensed.
 >
 > Play: https://swipetris.com
+>
+> Source: https://github.com/bitbonsai/swipetris
 >
 > I would especially value feedback on:
 >
@@ -152,6 +154,8 @@ Avoid r/gamedev as a launch link unless its current rules explicitly provide a s
 > Drag to move, tap to rotate, flick down to drop.
 >
 > https://swipetris.com
+>
+> Source: https://github.com/bitbonsai/swipetris
 >
 > I made it, and I would love to know whether the touch controls feel natural on your device.
 
@@ -187,7 +191,7 @@ This may need to be a link post with no body. Keep the title descriptive rather 
 
 **Creator disclosure comment**
 
-> I made this. I grew up with 80s arcade games and wanted a clean version for my phone. The Wordle-inspired part is that everyone gets the same piece sequence each day and only their best run counts. It is an installable PWA, works offline, and has no cookies or product analytics. Feedback is welcome.
+> I made this. I grew up with 80s arcade games and wanted a clean version for my phone. The Wordle-inspired part is that everyone gets the same piece sequence each day and only their best run counts. It is an installable PWA, works offline, and has no cookies or product analytics. The source is public at https://github.com/bitbonsai/swipetris. Feedback is welcome.
 
 ### r/IndieGaming
 
@@ -206,6 +210,8 @@ Attach a native 10–15 second gameplay video rather than relying on a link prev
 > I’m looking for feedback on game feel—especially lock delay, flick sensitivity, and whether the 3D board helps or distracts.
 >
 > https://swipetris.com
+>
+> Source: https://github.com/bitbonsai/swipetris
 
 ### r/opensource
 
@@ -281,7 +287,7 @@ Do not ask anybody to upvote or comment. HN explicitly prohibits that.
 - Why Alpine and three.js instead of a framework/canvas-only build?
 - What leaderboard validation exists, and what can still be cheated?
 - Why the name, and how is the project distinguished from the official trademarked game?
-- How can the “no analytics” claim coexist with Cloudflare logs or remotely hosted fonts?
+- How can the “no product analytics” claim coexist with Cloudflare’s standard infrastructure logs?
 
 Answer directly, including imperfections. HN responds better to technical honesty than launch copy.
 
@@ -414,6 +420,8 @@ After the core launch:
 
 The privacy promise is more valuable than precise attribution. Do not add invasive analytics just to produce a launch chart.
 
+Cloudflare Pages/zone traffic metrics are acceptable as a rough infrastructure-level view of requests and estimated visitors because they require no application beacon, cookies, or new identifier. Do not enable Cloudflare Web Analytics/RUM. Treat edge metrics as reach, not “people who played”: bots, cached assets, and repeat visits make that claim unreliable. For engagement, prefer aggregate counts from the existing leaderboard data rather than collecting a new play event.
+
 Use aggregate signals already available or public:
 
 - Number of distinct initials submitting per daily seed, with the caveat that initials are not unique people
@@ -432,7 +440,7 @@ Keep a manual launch log:
 |---|---|---|---|---|---|---|
 | | | | | | | |
 
-Do not use UTM parameters if the public promise is “no analytics.” Ask “what made you try it?” in conversation instead of silently tracking every person.
+Do not use UTM parameters if the public promise is “no tracking.” Ask “what made you try it?” in conversation instead of silently tracking every person.
 
 ## What success looks like
 
@@ -452,7 +460,7 @@ A front page, thousands of impressions, or a viral LinkedIn post is useful only 
 - [ ] Test production on iPhone and Android
 - [ ] Confirm score submission and leaderboard load
 - [ ] Confirm the share result is correct for today’s seed
-- [ ] Prepare one native video/GIF and one still image
+- [x] Prepare one native video/GIF and one still image
 - [ ] Post from the creator’s personal identity and disclose authorship
 - [ ] Stay available for at least two hours
 - [ ] Reply to every good-faith question

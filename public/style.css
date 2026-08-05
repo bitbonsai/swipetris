@@ -1,3 +1,32 @@
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("/fonts/press-start-2p-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin-800-normal.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 * { box-sizing: border-box; margin: 0; }
 html, body { height: 100%; }
 
@@ -460,6 +489,7 @@ button.ghost:hover { opacity: 1; border-color: var(--accent); }
 }
 .chip b { font-variant-numeric: tabular-nums; }
 .rank-chip { font-weight: 700; color: var(--accent); letter-spacing: 0.06em; }
+.submit-error { max-width: min(22rem, 88vw); color: var(--accent2); font-size: 0.8rem; line-height: 1.5; text-align: center; }
 .over-actions { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; margin-top: 0.6rem; width: min(20rem, 84vw); }
 .over-actions button.big { width: 100%; }
 .over-actions button.ghost { width: 100%; }

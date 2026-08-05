@@ -19,10 +19,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Press+Start+2P&display=swap">
-  <link rel="stylesheet" href="/landing.css?v=16">
+  <link rel="stylesheet" href="/landing.css?v=17">
 </head>
 <body>
 
@@ -137,7 +134,7 @@
             <li><span class="rk">4</span><span class="nm">SWIPE</span><b>71,930</b></li>
             <li><span class="rk">5</span><span class="nm">YOU??</span><b class="you">?????</b></li>
           </ol>
-          <p class="fine">The leaderboard is the only thing that ever touches a server. Everything else stays on your phone.</p>
+          <p class="fine">The leaderboard is the only feature that sends game data to a server. Everything else stays on your phone.</p>
         </article>
       </div>
     </section>
@@ -161,6 +158,8 @@
       <span class="dot">&middot;</span>
       <span>no cookies, no tracking</span>
       <span class="dot">&middot;</span>
+      <a href="/about">the story</a>
+      <span class="dot">&middot;</span>
       <a href="/scores">daily scores</a>
       <span class="dot">&middot;</span>
       <a href="/play">play</a>
@@ -179,7 +178,7 @@
   <script type="module" src="/bg.js?v=14"></script>
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
-      navigator.serviceWorker.register("/sw.js?v=20", { updateViaCache: "none" });
+      navigator.serviceWorker.register("/sw.js?v=21", { updateViaCache: "none" });
     }
   </script>
 </body>
