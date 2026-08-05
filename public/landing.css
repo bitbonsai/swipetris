@@ -77,6 +77,12 @@ main, footer { position: relative; z-index: 1; }
 }
 
 /* ============ HERO ============ */
+.brand-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .hero {
   display: flex;
   flex-direction: column;
@@ -739,6 +745,7 @@ footer .dot { opacity: 0.5; }
     gap: 60px;
   }
   .hero-copy { max-width: 520px; }
+  .hero-copy .brand-lockup { align-items: flex-start; }
   .gestures { justify-content: flex-start; }
   .cards { grid-template-columns: repeat(3, 1fr); }
   .card-scores { grid-column: 1 / -1; }

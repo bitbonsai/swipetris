@@ -14,7 +14,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun --hot src/server.ts",
-    "start": "bun src/server.ts"
+    "start": "bun src/server.ts",
+    "generate:brand": "bun scripts/render-brand.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
@@ -23,7 +24,9 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@fontsource/press-start-2p": "^5.3.0",
     "@types/bun": "^1.2.0",
+    "satori": "^0.29.0",
     "three": "^0.177.0"
   }
 }

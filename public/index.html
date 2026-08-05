@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Press+Start+2P&display=swap">
-  <link rel="stylesheet" href="/landing.css?v=14">
+  <link rel="stylesheet" href="/landing.css?v=15">
 </head>
 <body>
 
@@ -41,10 +41,12 @@
     <!-- ============ HERO ============ -->
     <section class="hero">
       <div class="hero-copy">
-        <div class="brand-block" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <h1 class="logo" aria-label="swipetris">
-          <span class="l1">S</span><span class="l2">W</span><span class="l3">I</span><span class="l4">P</span><span class="l5">E</span><span class="l6">T</span><span class="l7">R</span><span class="l1">I</span><span class="l2">S</span>
-        </h1>
+        <div class="brand-lockup">
+          <div class="brand-block" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <h1 class="logo" aria-label="swipetris">
+            <span class="l1">S</span><span class="l2">W</span><span class="l3">I</span><span class="l4">P</span><span class="l5">E</span><span class="l6">T</span><span class="l7">R</span><span class="l1">I</span><span class="l2">S</span>
+          </h1>
+        </div>
         <p class="tagline">SWIPE. STACK. REPEAT.</p>
         <p class="sub">3D falling blocks built for your thumb.<br>No app store. No account. No ads.</p>
 
@@ -172,7 +174,7 @@
   <script type="module" src="/bg.js?v=14"></script>
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
-      navigator.serviceWorker.register("/sw.js?v=17", { updateViaCache: "none" });
+      navigator.serviceWorker.register("/sw.js?v=18", { updateViaCache: "none" });
     }
   </script>
 </body>
