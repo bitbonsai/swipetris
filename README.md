@@ -5,7 +5,9 @@
 </p>
 
 <p align="center">
-  A free, no-ads, gesture-first daily falling-blocks challenge that lives on your phone.<br><br>
+  <strong>Like Wordle, but with blocks.</strong><br>
+  One daily sequence. Same pieces for everyone. Only your best run counts.<br>
+  Free, no ads, and built for your phone.<br><br>
   <a href="https://swipetris.com/play"><img src="public/play-button.svg" alt="Play now" width="255"></a>
 </p>
 

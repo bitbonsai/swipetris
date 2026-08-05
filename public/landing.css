@@ -652,6 +652,12 @@ main, footer { position: relative; z-index: 1; }
 .icon-O i { background: var(--yellow); box-shadow: inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.3), 0 0 12px rgba(250, 204, 21, 0.35); }
 .icon-I { grid-template-columns: repeat(4, 13px); }
 .icon-I i { background: var(--cyan); box-shadow: inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.3), 0 0 12px rgba(34, 211, 238, 0.35); }
+.icon-J { grid-template-columns: repeat(3, 13px); }
+.icon-J i { background: var(--blue); box-shadow: inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.3), 0 0 12px rgba(59, 130, 246, 0.35); }
+.icon-J i:nth-child(1) { grid-column: 1; }
+.icon-J i:nth-child(2) { grid-column: 1; grid-row: 2; }
+.icon-J i:nth-child(3) { grid-column: 2; grid-row: 2; }
+.icon-J i:nth-child(4) { grid-column: 3; grid-row: 2; }
 .icon-T { grid-template-columns: repeat(3, 13px); }
 .icon-T i { background: var(--purple); box-shadow: inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.3), 0 0 12px rgba(168, 85, 247, 0.35); }
 .icon-T i:nth-child(1) { grid-column: 2; }
@@ -722,6 +728,8 @@ footer {
 }
 .foot-line { display: flex; justify-content: center; gap: 10px; }
 footer a { color: var(--cyan); text-decoration: none; }
+.github-link { display: inline-flex; align-items: center; gap: 5px; }
+.github-link svg { width: 14px; height: 14px; fill: currentColor; }
 footer a.quiet { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 footer .credit span { color: var(--red); }
 footer .dot { opacity: 0.5; }
