@@ -2,6 +2,15 @@
   "name": "swipetris",
   "version": "0.1.0",
   "private": true,
+  "description": "A gesture-first, daily-challenge falling-blocks PWA.",
+  "license": "MIT",
+  "author": "Mauricio Wolff",
+  "homepage": "https://swipetris.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bitbonsai/swipetris.git"
+  },
+  "bugs": "https://github.com/bitbonsai/swipetris/issues",
   "type": "module",
   "scripts": {
     "dev": "bun --hot src/server.ts",
