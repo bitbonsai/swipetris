@@ -19,3 +19,4 @@ Daily-challenge falling-blocks PWA. three.js game (`public/app.js`), Alpine UI (
 - Press Start 2P: uppercase only (lowercase glyphs unusable); needs `line-height: 1.7` when wrapping; letter-spacing leaves a trailing gap, so compensate with `text-indent` for optically centered text. Sentence-case UI text uses JetBrains Mono instead.
 - Multi-row line clear: `splice`+`unshift` must iterate rows ASCENDING; descending removes the wrong rows.
 - Daily piece sequence is seeded by local date on purpose (same board worldwide, fair leaderboard, Wordle-style). Not a bug.
+- CPU leaderboard benchmarks are lazily reconciled on API reads after noon Europe/Amsterdam (not cron-driven): `synthetic=1`, three total places max, and CPU rows disappear as real players submit. Keep `functions/api/_seed.js` and `src/seed-bots.ts` behavior in sync.

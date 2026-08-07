@@ -13,6 +13,7 @@ export const scores = sqliteTable("scores", {
   pieces: integer("pieces").notNull(),
   durationMs: integer("duration_ms").notNull(),
   createdAt: integer("created_at").notNull(),
+  synthetic: integer("synthetic").notNull().default(0),
 });
 
 // Turso in production (TURSO_URL + TURSO_TOKEN), local file for dev
@@ -32,9 +33,19 @@ await client.executeMultiple(`
     level INTEGER NOT NULL,
     pieces INTEGER NOT NULL,
     duration_ms INTEGER NOT NULL,
-    created_at INTEGER NOT NULL
+    created_at INTEGER NOT NULL,
+    synthetic INTEGER NOT NULL DEFAULT 0
   );
   CREATE INDEX IF NOT EXISTS idx_scores_mode_seed ON scores (mode, seed, score DESC);
+`);
+
+const columns = await client.execute("PRAGMA table_info(scores)");
+if (!columns.rows.some((row) => row.name === "synthetic")) {
+  await client.execute("ALTER TABLE scores ADD COLUMN synthetic INTEGER NOT NULL DEFAULT 0");
+}
+await client.execute(`
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_synthetic_slot
+  ON scores (mode, seed, name) WHERE synthetic = 1
 `);
 
 export const db = drizzle(client);

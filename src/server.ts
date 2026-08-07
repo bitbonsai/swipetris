@@ -3,6 +3,7 @@ import { serveStatic } from "hono/bun";
 import { z } from "zod";
 import { db, scores } from "./db";
 import { sql } from "drizzle-orm";
+import { CPU_NAMES, currentDailySeed, reconcileDailyBots } from "./seed-bots";
 
 const app = new Hono();
 
@@ -61,8 +62,12 @@ app.post("/api/score", async (c) => {
     return c.json({ error: "invalid score payload" }, 400);
   }
   const s = parsed.data;
+  if (CPU_NAMES.includes(s.name.toUpperCase() as typeof CPU_NAMES[number])) {
+    return c.json({ error: "reserved CPU name" }, 400);
+  }
   if (!plausible(s)) return c.json({ error: "score rejected" }, 422);
-  await db.insert(scores).values({ ...s, createdAt: Date.now() });
+  await db.insert(scores).values({ ...s, createdAt: Date.now(), synthetic: 0 });
+  await reconcileDailyBots(s.seed);
   // rank against each other player's best run (one slot per name)
   const [{ rank }] = await db.all<{ rank: number }>(sql`
     SELECT count(*) + 1 AS rank FROM (
@@ -78,9 +83,10 @@ app.post("/api/score", async (c) => {
 app.get("/api/leaderboard", async (c) => {
   const mode = c.req.query("mode") ?? "daily";
   const seed = Number(c.req.query("seed") ?? "0");
+  if (mode === "daily") await reconcileDailyBots(seed);
   // best run per name: one leaderboard slot per player
   const rows = await db.all(sql`
-    SELECT id, name, mode, seed, score, lines, level, pieces
+    SELECT id, name, mode, seed, score, lines, level, pieces, synthetic
     FROM scores s
     WHERE mode = ${mode} AND seed = ${seed}
       AND score = (SELECT max(score) FROM scores WHERE mode = s.mode AND seed = s.seed AND name = s.name)
@@ -92,29 +98,30 @@ app.get("/api/leaderboard", async (c) => {
 });
 
 app.get("/api/daily-scores", async (c) => {
+  await reconcileDailyBots(currentDailySeed(new Date(), process.env.BOT_TIME_ZONE ?? "Europe/Amsterdam"));
   // Each player gets one place per day; keep the archive compact at 90 boards.
-  const rows = await db.all<{ seed: number; name: string; score: number }>(sql`
+  const rows = await db.all<{ seed: number; name: string; score: number; synthetic: number }>(sql`
     WITH player_bests AS (
-      SELECT seed, name, max(score) AS score
+      SELECT seed, name, max(score) AS score, max(synthetic) AS synthetic
       FROM scores
       WHERE mode = 'daily'
       GROUP BY seed, name
     ), recent_days AS (
       SELECT seed FROM player_bests GROUP BY seed ORDER BY seed DESC LIMIT 90
     ), ranked AS (
-      SELECT seed, name, score,
+      SELECT seed, name, score, synthetic,
         row_number() OVER (PARTITION BY seed ORDER BY score DESC, name ASC) AS rank
       FROM player_bests
     )
-    SELECT seed, name, score
+    SELECT seed, name, score, synthetic
     FROM ranked
     WHERE rank <= 5 AND seed IN (SELECT seed FROM recent_days)
     ORDER BY seed DESC, rank ASC
   `);
-  const bySeed = new Map<number, { seed: number; leaderboard: { name: string; score: number }[] }>();
+  const bySeed = new Map<number, { seed: number; leaderboard: { name: string; score: number; synthetic: number }[] }>();
   for (const row of rows) {
     const day = bySeed.get(row.seed) ?? { seed: row.seed, leaderboard: [] };
-    day.leaderboard.push({ name: row.name, score: row.score });
+    day.leaderboard.push({ name: row.name, score: row.score, synthetic: row.synthetic });
     bySeed.set(row.seed, day);
   }
   return c.json({ dailyScores: [...bySeed.values()] });

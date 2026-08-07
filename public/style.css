@@ -501,7 +501,12 @@ button.ghost:hover { opacity: 1; border-color: var(--accent); }
   background: var(--panel); border: 1px solid var(--border); border-radius: 0.9rem;
   padding: 0.5rem;
 }
-.board-list .nm { text-transform: uppercase; letter-spacing: 0.22em; }
+.board-list .nm { display: flex; align-items: center; gap: 0.45rem; text-transform: uppercase; }
+.board-list .nm > span { letter-spacing: 0.22em; }
+.cpu-badge {
+  flex: none; padding: 0.18rem 0.25rem; border: 1px solid currentColor; border-radius: 0.2rem;
+  color: var(--dim); font-family: "JetBrains Mono", monospace; font-size: 0.5rem; line-height: 1; letter-spacing: 0.08em;
+}
 .board-list li {
   display: grid; grid-template-columns: 1.8rem 1fr auto;
   align-items: center; gap: 0.7rem;

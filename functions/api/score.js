@@ -1,4 +1,5 @@
 import { exec, json } from "./_shared.js";
+import { CPU_NAMES, reconcileDailyBots } from "./_seed.js";
 
 // mirrors src/server.ts: validation, plausibility, rate limit, dedup-aware rank
 
@@ -51,13 +52,15 @@ export async function onRequestPost({ request, env }) {
   try { body = await request.json(); } catch {}
   const s = validate(body);
   if (!s) return json({ error: "invalid score payload" }, 400);
+  if (CPU_NAMES.includes(s.name.toUpperCase())) return json({ error: "reserved CPU name" }, 400);
   if (!plausible(s)) return json({ error: "score rejected" }, 422);
 
   await exec(
     env,
-    "INSERT INTO scores (name, mode, seed, score, lines, level, pieces, duration_ms, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO scores (name, mode, seed, score, lines, level, pieces, duration_ms, created_at, synthetic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)",
     [s.name, s.mode, s.seed, s.score, s.lines, s.level, s.pieces, s.durationMs, Date.now()],
   );
+  await reconcileDailyBots(env, s.seed);
   const rows = await exec(
     env,
     `SELECT count(*) + 1 AS rank FROM (

@@ -8,8 +8,12 @@ CREATE TABLE IF NOT EXISTS scores (
   level INTEGER NOT NULL,
   pieces INTEGER NOT NULL,
   duration_ms INTEGER NOT NULL,
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  synthetic INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_scores_mode_seed
   ON scores (mode, seed, score DESC);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_synthetic_slot
+  ON scores (mode, seed, name) WHERE synthetic = 1;

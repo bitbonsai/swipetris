@@ -341,6 +341,12 @@ async function loadHiscores() {
     const r = rows[i];
     if (r) {
       nm.textContent = String(r.name).toUpperCase().slice(0, 5);
+      if (r.synthetic) {
+        const badge = document.createElement("small");
+        badge.className = "cpu-badge";
+        badge.textContent = "CPU";
+        nm.append(badge);
+      }
       b.textContent = r.score.toLocaleString();
     } else if (i === rows.length) {
       nm.textContent = "YOU??";

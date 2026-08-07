@@ -33,6 +33,12 @@ function scoreDay({ seed, leaderboard }) {
     const name = document.createElement("span");
     name.className = "score-name";
     name.textContent = String(row.name).toUpperCase().slice(0, 5);
+    if (row.synthetic) {
+      const badge = document.createElement("small");
+      badge.className = "cpu-badge";
+      badge.textContent = "CPU";
+      name.append(badge);
+    }
     const points = document.createElement("b");
     points.className = "score-points";
     points.textContent = row.score.toLocaleString();

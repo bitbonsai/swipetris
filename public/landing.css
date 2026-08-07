@@ -723,7 +723,11 @@ main, footer { position: relative; z-index: 1; }
 .hiscores .rk.r1 { color: var(--yellow); text-shadow: 0 0 8px rgba(250, 204, 21, 0.6); }
 .hiscores .rk.r2 { color: var(--cyan); }
 .hiscores .rk.r3 { color: var(--orange); }
-.hiscores .nm { letter-spacing: 0.3em; }
+.hiscores .nm { display: flex; align-items: center; gap: 7px; letter-spacing: 0.3em; }
+.cpu-badge {
+  flex: none; padding: 2px 3px; border: 1px solid currentColor; border-radius: 3px;
+  color: var(--dim); font-family: var(--mono); font-size: 7px; line-height: 1; letter-spacing: .08em;
+}
 .hiscores b { margin-left: auto; font-weight: 400; color: var(--dim); }
 .hiscores b.you { color: var(--green); text-shadow: 0 0 8px rgba(74, 222, 128, 0.5); animation: blink 1.2s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0.25; } }

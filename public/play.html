@@ -18,7 +18,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/style.css?v=16">
+  <link rel="stylesheet" href="/style.css?v=17">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
     import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=18";
@@ -274,7 +274,7 @@
             <template x-for="(r, i) in leaderboard" :key="r.id">
               <li>
                 <span class="rank" :class="'r'+(i+1)" x-text="i+1"></span>
-                <span class="nm" x-text="r.name"></span>
+                <span class="nm"><span x-text="r.name"></span><small class="cpu-badge" x-show="r.synthetic">CPU</small></span>
                 <b x-text="r.score.toLocaleString()"></b>
               </li>
             </template>
@@ -334,7 +334,7 @@
 
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
-      navigator.serviceWorker.register("/sw.js?v=22", { updateViaCache: "none" });
+      navigator.serviceWorker.register("/sw.js?v=23", { updateViaCache: "none" });
     }
   </script>
 </body>

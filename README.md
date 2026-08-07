@@ -88,7 +88,7 @@ Wrangler serves `public/` and loads the routes in `functions/api/`. The Pages Fu
 
 ## Deploy
 
-1. Create a Turso database and apply [`schema.sql`](schema.sql), for example with `turso db shell <database> < schema.sql`.
+1. Create a Turso database and apply [`schema.sql`](schema.sql), for example with `turso db shell <database> < schema.sql`. Existing databases should also apply files in [`migrations/`](migrations/) in order.
 2. Create a Cloudflare Pages project connected to your fork.
 3. Leave the build command empty and set the output directory to `public`.
 4. Add `TURSO_URL` and `TURSO_TOKEN` in the Pages project settings.
@@ -103,11 +103,14 @@ public/          Static site, game, PWA assets, and vendored browser libraries
 functions/api/   Cloudflare Pages leaderboard endpoints
 src/             Bun/Hono local development server and database schema
 schema.sql       Production database bootstrap
+migrations/      Additive migrations for existing databases
 ```
 
 ## Leaderboard trust model
 
 Scores are untrusted client input. The API validates payload shape, daily seeds, score plausibility, timing, and submission rate before storing a result. These checks discourage casual abuse; they are not cryptographic proof of gameplay. Production operators should also configure platform-level rate limiting and monitor anomalous scores.
+
+After noon in `Europe/Amsterdam` (overridable with `BOT_TIME_ZONE`), a board with fewer than three real players is filled to three places with clearly labeled CPU benchmark scores. CPU rows are stored with `synthetic = 1`, excluded when counting players, and removed one by one as real players submit.
 
 See [`SECURITY.md`](SECURITY.md) for reporting vulnerabilities.
 
