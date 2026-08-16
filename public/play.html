@@ -220,7 +220,10 @@
         <div id="hud">
           <div class="hud-left">
             <b x-text="score.toLocaleString()">0</b>
-            <span><em x-text="lines">0</em> lines · lv <em x-text="level">1</em></span>
+            <div class="hud-meta">
+              <span><em x-text="lines">0</em> lines · lv <em x-text="level">1</em></span>
+              <span class="bot-label" x-show="isBot" x-transition>BOT</span>
+            </div>
           </div>
           <div class="hud-day" x-show="dayBest > 0" x-cloak>
             <span>DAY BEST</span>
@@ -232,6 +235,9 @@
           </div>
         </div>
         <div id="hud-pops"></div>
+        <button id="bot-demo" x-show="state === 'menu'" x-transition @click="watchBot()" aria-label="Watch bot demo">
+          <span>BOT</span><small>DEMO</small>
+        </button>
         <div id="settings-swipe-hint" x-cloak x-show="gestureHint && state === 'playing'" x-transition.opacity aria-live="polite">
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 18V6m0 0-5 5m5-5 5 5"/></svg>
           <span>SWIPE UP FOR SETTINGS</span>
@@ -242,7 +248,6 @@
           <div class="menu-title"><span>s</span><span>w</span><span>i</span><span>p</span><span>e</span><span>t</span><span>r</span><span>i</span><span>s</span></div>
           <p class="tagline">swipe. stack. repeat.</p>
           <button class="big" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY</span></button>
-          <button class="ghost bot-trigger" @click="watchBot()">WATCH BOT PLAY</button>
           <p class="menu-meta" x-show="best > 0">BEST <b x-text="best.toLocaleString()"></b></p>
           <p class="menu-meta dim">new daily in <span x-text="countdown"></span></p>
           <div class="gestures">
@@ -285,7 +290,7 @@
             <template x-for="(r, i) in leaderboard" :key="r.id">
               <li>
                 <span class="rank" :class="'r'+(i+1)" x-text="i+1"></span>
-                <span class="nm"><span x-text="r.name"></span><small class="cpu-badge" x-show="r.synthetic">CPU</small></span>
+                <span class="nm"><span x-text="r.name"></span><small class="cpu-badge" x-show="r.synthetic">CPU</small><small class="cpu-badge bot-score-badge" x-show="!r.synthetic && r.name === 'BOT'">BOT</small></span>
                 <b x-text="r.score.toLocaleString()"></b>
               </li>
             </template>

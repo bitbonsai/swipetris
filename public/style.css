@@ -136,8 +136,19 @@ main { flex: 1; display: flex; min-height: 0; }
   color: var(--accent);
   text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
 }
+.hud-meta { display: flex; align-items: center; gap: 0.48rem; }
 .hud-left span {
   font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.6;
+}
+.hud-left .bot-label {
+  padding: 0.15rem 0.32rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  opacity: 1;
 }
 .hud-left em { font-style: normal; }
 .hud-next { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; justify-self: end; }
@@ -147,6 +158,27 @@ main { flex: 1; display: flex; min-height: 0; }
 #next-canvas { width: 52px; height: 52px; opacity: 0.95; }
 
 #hud-pops { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+
+#bot-demo {
+  position: absolute;
+  top: 0.78rem;
+  left: 5.4rem;
+  z-index: 6;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.32rem;
+  padding: 0.36rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 58%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 76%, transparent);
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+#bot-demo span { font-size: 0.58rem; font-weight: 800; letter-spacing: 0.1em; }
+#bot-demo small { font-size: 0.5rem; letter-spacing: 0.1em; opacity: 0.65; }
+#bot-demo:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+#bot-demo:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
 
 /* text over a bottom gradient, mirroring the HUD's top gradient */
 #settings-swipe-hint {
@@ -344,14 +376,6 @@ main { flex: 1; display: flex; min-height: 0; }
 .menu-title span:nth-child(9) { color: var(--c-O); text-shadow: 0 0 16px color-mix(in srgb, var(--c-O) 50%, transparent); }
 .overlay.menu { gap: 2rem; justify-content: safe center; padding-block: 3rem; }
 .overlay.menu .big { margin-top: 1.2rem; }
-.overlay.menu .bot-trigger {
-  margin-top: -1.25rem;
-  color: var(--accent);
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
 .overlay.menu .hint { margin-top: 0.6rem; }
 .tagline { font-family: var(--pixel); text-transform: uppercase; opacity: 0.55; letter-spacing: 0.14em; font-size: clamp(9px, 2.4vw, 12px); margin-top: -0.6rem; }
 .hint { font-size: 0.68rem; opacity: 0.5; }
@@ -515,6 +539,7 @@ button.ghost:hover { opacity: 1; border-color: var(--accent); }
   flex: none; padding: 0.18rem 0.25rem; border: 1px solid currentColor; border-radius: 0.2rem;
   color: var(--dim); font-family: "JetBrains Mono", monospace; font-size: 0.5rem; line-height: 1; letter-spacing: 0.08em;
 }
+.bot-score-badge { color: var(--accent); }
 .board-list li {
   display: grid; grid-template-columns: 1.8rem 1fr auto;
   align-items: center; gap: 0.7rem;

@@ -337,6 +337,7 @@ function queueBotTurn() {
     let remainingRotations = plan.rotations;
     const act = () => {
       if (!botMode || !running || !current) return;
+      if (paused) { botTimer = setTimeout(act, 100); return; }
       if (remainingRotations > 0) {
         rotate();
         remainingRotations--;
