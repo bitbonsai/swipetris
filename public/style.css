@@ -369,11 +369,16 @@ main { flex: 1; display: flex; min-height: 0; }
 }
 .about-link:hover { opacity: 1; border-color: var(--accent); }
 button.about-link.bot-demo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 72%, transparent);
   background: transparent;
   cursor: pointer;
 }
+button.about-link.bot-demo svg { width: 0.95em; height: 0.95em; fill: currentColor; }
 button.about-link.bot-demo:hover:not(:disabled) {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 10%, transparent);
