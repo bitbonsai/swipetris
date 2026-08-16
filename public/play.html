@@ -32,6 +32,7 @@
         settingsHintSeen: false,
         hintTimer: null,
         isBot: false,
+        botStarting: false,
         score: 0, lines: 0, level: 1,
         name: (localStorage.getItem("swipetris-name") ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5),
         leaderboard: [],
@@ -148,11 +149,30 @@
             this.hintTimer = setTimeout(() => { this.gestureHint = false; }, 4200);
           }
         },
-        watchBot() {
-          this.state = "playing";
-          this.sheet = false;
-          this.isBot = true;
-          startGame(true);
+        async watchBot() {
+          if (this.botStarting) return;
+          this.botStarting = true;
+          try {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const res = await fetch(`/api/leaderboard?mode=daily&seed=${dailySeed(yesterday)}`);
+            const rows = res.ok ? (await res.json()).leaderboard : [];
+            // Aim one point below yesterday's fifth-place score. A short board gets
+            // its bottom score instead, so BOT remains a demo rather than a winner.
+            const cutoff = rows[4] ?? rows[rows.length - 1];
+            const scoreLimit = cutoff ? Math.max(0, cutoff.score - 1) : 4_999;
+            this.state = "playing";
+            this.sheet = false;
+            this.isBot = true;
+            startGame(true, scoreLimit);
+          } catch {
+            this.state = "playing";
+            this.sheet = false;
+            this.isBot = true;
+            startGame(true, 4_999);
+          } finally {
+            this.botStarting = false;
+          }
         },
         async share() {
           const r = this.lastResult;
@@ -235,8 +255,8 @@
           </div>
         </div>
         <div id="hud-pops"></div>
-        <button id="bot-demo" x-show="state === 'menu'" x-transition @click="watchBot()" aria-label="Watch bot demo">
-          <span>BOT</span><small>DEMO</small>
+        <button id="bot-demo" x-show="state === 'menu'" x-transition @click="watchBot()" :disabled="botStarting" aria-label="Watch bot demo">
+          <span>BOT</span><small x-text="botStarting ? 'LOADING' : 'DEMO'">DEMO</small>
         </button>
         <div id="settings-swipe-hint" x-cloak x-show="gestureHint && state === 'playing'" x-transition.opacity aria-live="polite">
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 18V6m0 0-5 5m5-5 5 5"/></svg>

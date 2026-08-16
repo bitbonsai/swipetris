@@ -146,7 +146,7 @@ let dropAcc = 0, lastTick = 0, running = false;
 const LOCK_DELAY = 300;
 let lockAt = 0, lockResets = 0;
 let paused = false;
-let botMode = false, botTimer = null;
+let botMode = false, botTimer = null, botScoreLimit = Infinity;
 export function setPaused(v) {
   if (paused === v) return;
   paused = v;
@@ -306,7 +306,13 @@ function ratePlacement(m, x) {
   const aggregate = heights.reduce((sum, h) => sum + h, 0);
   const bumpiness = heights.slice(1).reduce((sum, h, i) => sum + Math.abs(h - heights[i]), 0);
   const maxHeight = Math.max(...heights);
-  return { x, score: clears * 10 - holes * 8 - aggregate * 0.45 - bumpiness * 0.8 - maxHeight * 1.2 };
+  const dropPoints = (y - current.y) * 2;
+  const clearPoints = [0, 100, 300, 500, 800][clears] * level;
+  return {
+    x,
+    score: clears * 10 - holes * 8 - aggregate * 0.45 - bumpiness * 0.8 - maxHeight * 1.2,
+    projectedScore: score + dropPoints + clearPoints,
+  };
 }
 function chooseBotMove() {
   const seen = new Set();
@@ -321,7 +327,9 @@ function chooseBotMove() {
           if (m[y][x]) { minX = Math.min(minX, x); maxX = Math.max(maxX, x); }
       for (let x = -minX; x <= COLS - 1 - maxX; x++) {
         const candidate = ratePlacement(m, x);
-        if (candidate && (!best || candidate.score > best.score)) best = { ...candidate, rotations };
+        if (candidate && candidate.projectedScore <= botScoreLimit && (!best || candidate.score > best.score)) {
+          best = { ...candidate, rotations };
+        }
       }
     }
     m = rotateCW(m);
@@ -333,7 +341,7 @@ function queueBotTurn() {
   if (!botMode || !running || !current) return;
   botTimer = setTimeout(() => {
     const plan = chooseBotMove();
-    if (!plan || !current) return;
+    if (!plan || !current) { endGame(); return; }
     let remainingRotations = plan.rotations;
     const act = () => {
       if (!botMode || !running || !current) return;
@@ -436,9 +444,10 @@ export function hasDailyRolledOver() {
   return mode === "daily" && seed !== dailySeed();
 }
 
-export function startGame(isBot = false) {
+export function startGame(isBot = false, scoreLimit = Infinity) {
   clearTimeout(botTimer);
   botMode = isBot;
+  botScoreLimit = scoreLimit;
   mode = "daily";
   seed = dailySeed();
   rng = mulberry32(seed);

@@ -177,7 +177,8 @@ main { flex: 1; display: flex; min-height: 0; }
 }
 #bot-demo span { font-size: 0.58rem; font-weight: 800; letter-spacing: 0.1em; }
 #bot-demo small { font-size: 0.5rem; letter-spacing: 0.1em; opacity: 0.65; }
-#bot-demo:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+#bot-demo:hover:not(:disabled) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+#bot-demo:disabled { cursor: wait; opacity: 0.65; }
 #bot-demo:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
 
 /* text over a bottom gradient, mirroring the HUD's top gradient */
