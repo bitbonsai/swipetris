@@ -157,10 +157,10 @@
             yesterday.setDate(yesterday.getDate() - 1);
             const res = await fetch(`/api/leaderboard?mode=daily&seed=${dailySeed(yesterday)}`);
             const rows = res.ok ? (await res.json()).leaderboard : [];
-            // Aim one point below yesterday's fifth-place score. A short board gets
+            // Aim 10% below yesterday's fifth-place score. A short board gets
             // its bottom score instead, so BOT remains a demo rather than a winner.
             const cutoff = rows[4] ?? rows[rows.length - 1];
-            const scoreLimit = cutoff ? Math.max(0, cutoff.score - 1) : 4_999;
+            const scoreLimit = cutoff ? Math.floor(cutoff.score * 0.9) : 4_999;
             this.state = "playing";
             this.sheet = false;
             this.isBot = true;
