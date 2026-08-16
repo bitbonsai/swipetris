@@ -186,7 +186,7 @@
           this.shared = true;
         },
         async submitScore() {
-          if (this.submitting) return;
+          if (this.submitting || this.isBot) return;
           const r = this.lastResult;
           this.submitting = true;
           this.submitError = "";
@@ -299,10 +299,10 @@
             <span class="chip"><b x-text="lastResult ? lastResult.pieces : 0"></b> pcs</span>
           </div>
 
-          <form x-show="!submitted" @submit.prevent="submitScore()">
+          <form x-show="!submitted && !isBot" @submit.prevent="submitScore()">
             <input class="initials" x-model="name" @input="name = name.toUpperCase().replace(/[^A-Z0-9]/g, ''); submitError = ''"
               maxlength="5" placeholder="PLAYER" autocomplete="off" required>
-            <button type="submit" :disabled="submitting" x-text="submitting ? 'SAVING...' : isBot ? 'SAVE BOT SCORE' : 'SAVE'">SAVE</button>
+            <button type="submit" :disabled="submitting" x-text="submitting ? 'SAVING...' : 'SAVE'">SAVE</button>
           </form>
           <p class="submit-error" x-cloak x-show="submitError" x-text="submitError" role="alert"></p>
           <div class="rank-chip" x-show="submitted" x-text="rankText + ' on the board'"></div>
@@ -319,6 +319,7 @@
 
           <div class="over-actions">
             <button class="big" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY AGAIN</span></button>
+            <button class="ghost bot-replay" @click="watchBot()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>DEMO BOT</span></button>
             <button class="ghost" @click="share()" x-text="shared ? 'COPIED!' : 'SHARE SCORE'"></button>
           </div>
         </div>

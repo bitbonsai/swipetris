@@ -146,7 +146,7 @@ let dropAcc = 0, lastTick = 0, running = false;
 const LOCK_DELAY = 300;
 let lockAt = 0, lockResets = 0;
 let paused = false;
-let botMode = false, botTimer = null, botScoreLimit = Infinity;
+let botMode = false, botTimer = null, botScoreLimit = Infinity, botRetiring = false;
 export function setPaused(v) {
   if (paused === v) return;
   paused = v;
@@ -310,6 +310,9 @@ function ratePlacement(m, x) {
   const clearPoints = [0, 100, 300, 500, 800][clears] * level;
   return {
     x,
+    clears,
+    aggregate,
+    maxHeight,
     score: clears * 10 - holes * 8 - aggregate * 0.45 - bumpiness * 0.8 - maxHeight * 1.2,
     projectedScore: score + dropPoints + clearPoints,
   };
@@ -336,11 +339,52 @@ function chooseBotMove() {
   }
   return best;
 }
+function chooseBotRetirementMove() {
+  const seen = new Set();
+  let m = SHAPES[current.type], best = null;
+  for (let rotations = 0; rotations < 4; rotations++) {
+    const key = m.map((row) => row.join("")).join("/");
+    if (!seen.has(key)) {
+      seen.add(key);
+      let minX = m[0].length, maxX = -1;
+      for (let y = 0; y < m.length; y++)
+        for (let x = 0; x < m[y].length; x++)
+          if (m[y][x]) { minX = Math.min(minX, x); maxX = Math.max(maxX, x); }
+      for (let x = -minX; x <= COLS - 1 - maxX; x++) {
+        const candidate = ratePlacement(m, x);
+        if (candidate && candidate.clears === 0 && (!best || candidate.aggregate > best.aggregate || (candidate.aggregate === best.aggregate && candidate.maxHeight > best.maxHeight))) {
+          best = { ...candidate, rotations };
+        }
+      }
+    }
+    m = rotateCW(m);
+  }
+  return best;
+}
+function botRetireDrop() {
+  const step = () => {
+    if (!botMode || !running || !current) return;
+    if (paused) { botTimer = setTimeout(step, 100); return; }
+    const m = matrixOf(current);
+    if (!collides(m, current.x, current.y + 1)) {
+      current.y++;
+      syncMeshes();
+      botTimer = setTimeout(step, 65);
+    } else {
+      lockPiece(true);
+    }
+  };
+  step();
+}
 function queueBotTurn() {
   clearTimeout(botTimer);
   if (!botMode || !running || !current) return;
   botTimer = setTimeout(() => {
-    const plan = chooseBotMove();
+    let plan = botRetiring ? chooseBotRetirementMove() : chooseBotMove();
+    if (!plan && !botRetiring) {
+      botRetiring = true;
+      plan = chooseBotRetirementMove();
+    }
     if (!plan || !current) { endGame(); return; }
     let remainingRotations = plan.rotations;
     const act = () => {
@@ -353,8 +397,10 @@ function queueBotTurn() {
       } else if (current.x !== plan.x) {
         const before = current.x;
         move(plan.x > current.x ? 1 : -1);
-        if (current.x === before) hardDrop();
+        if (current.x === before) botRetiring ? botRetireDrop() : hardDrop();
         else botTimer = setTimeout(act, 45);
+      } else if (botRetiring) {
+        botRetireDrop();
       } else {
         hardDrop();
       }
@@ -448,6 +494,7 @@ export function startGame(isBot = false, scoreLimit = Infinity) {
   clearTimeout(botTimer);
   botMode = isBot;
   botScoreLimit = scoreLimit;
+  botRetiring = false;
   mode = "daily";
   seed = dailySeed();
   rng = mulberry32(seed);
@@ -469,6 +516,7 @@ function endGame() {
   buzz(120);
   const detail = { mode, seed, score, lines, level, pieces, durationMs: Date.now() - startTime, bot: botMode };
   botMode = false;
+  botRetiring = false;
   clearTimeout(botTimer);
   window.dispatchEvent(new CustomEvent("gameover", { detail }));
 }

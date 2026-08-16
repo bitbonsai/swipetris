@@ -477,6 +477,15 @@ button.ghost {
   transition: border-color 0.15s, opacity 0.15s;
 }
 button.ghost:hover { opacity: 1; border-color: var(--accent); }
+button.ghost.bot-replay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 72%, transparent);
+}
+button.ghost.bot-replay svg { width: 0.95em; height: 0.95em; fill: currentColor; }
 .overlay form { display: flex; gap: 0.5rem; }
 .overlay input {
   font: inherit; font-size: 1rem; padding: 0.6rem 0.85rem; border-radius: 0.7rem;
