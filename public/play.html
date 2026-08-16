@@ -283,6 +283,9 @@
           </div>
           <a class="about-link" href="/scores">daily scores</a>
           <a class="about-link" href="/about">what is swipetris?</a>
+          <button class="about-link bot-demo" @click="watchBot()" :disabled="botStarting">
+            <span x-text="botStarting ? 'Loading Bot...' : 'Demo Bot'">Demo Bot</span>
+          </button>
         </div>
 
         <div class="overlay over" x-show="state==='over'" x-transition>
