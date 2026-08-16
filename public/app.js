@@ -146,6 +146,7 @@ let dropAcc = 0, lastTick = 0, running = false;
 const LOCK_DELAY = 300;
 let lockAt = 0, lockResets = 0;
 let paused = false;
+let botMode = false, botTimer = null;
 export function setPaused(v) {
   if (paused === v) return;
   paused = v;
@@ -208,6 +209,7 @@ function spawn() {
   }
   drawNext();
   syncMeshes();
+  if (botMode) queueBotTurn();
 }
 function resetLockDelay() {
   if (lockAt && lockResets < 8) {
@@ -261,6 +263,95 @@ function hardDrop() {
   sfx.drop();
   buzz(15);
   lockPiece(true);
+}
+
+// Bot evaluates every legal rotation and column. Favor clears, avoid holes and tall, jagged stacks.
+function collidesOn(candidate, m, px, py) {
+  for (let y = 0; y < m.length; y++)
+    for (let x = 0; x < m[y].length; x++) {
+      if (!m[y][x]) continue;
+      const bx = px + x, by = py + y;
+      if (bx < 0 || bx >= COLS || by >= TOTAL) return true;
+      if (by >= 0 && candidate[by][bx]) return true;
+    }
+  return false;
+}
+function ratePlacement(m, x) {
+  let y = current.y;
+  if (collidesOn(board, m, x, y)) return null;
+  while (!collidesOn(board, m, x, y + 1)) y++;
+  const next = board.map((row) => [...row]);
+  for (let py = 0; py < m.length; py++)
+    for (let px = 0; px < m[py].length; px++)
+      if (m[py][px] && y + py >= 0) next[y + py][x + px] = current.type;
+
+  let clears = 0;
+  const kept = [];
+  for (const row of next) {
+    if (row.every(Boolean)) clears++;
+    else kept.push(row);
+  }
+  while (kept.length < TOTAL) kept.unshift(new Array(COLS).fill(0));
+
+  const heights = [];
+  let holes = 0;
+  for (let col = 0; col < COLS; col++) {
+    let top = TOTAL, seenBlock = false;
+    for (let row = 0; row < TOTAL; row++) {
+      if (kept[row][col]) { seenBlock = true; top = Math.min(top, row); }
+      else if (seenBlock) holes++;
+    }
+    heights.push(top === TOTAL ? 0 : TOTAL - top);
+  }
+  const aggregate = heights.reduce((sum, h) => sum + h, 0);
+  const bumpiness = heights.slice(1).reduce((sum, h, i) => sum + Math.abs(h - heights[i]), 0);
+  const maxHeight = Math.max(...heights);
+  return { x, score: clears * 10 - holes * 8 - aggregate * 0.45 - bumpiness * 0.8 - maxHeight * 1.2 };
+}
+function chooseBotMove() {
+  const seen = new Set();
+  let m = SHAPES[current.type], best = null;
+  for (let rotations = 0; rotations < 4; rotations++) {
+    const key = m.map((row) => row.join("")).join("/");
+    if (!seen.has(key)) {
+      seen.add(key);
+      let minX = m[0].length, maxX = -1;
+      for (let y = 0; y < m.length; y++)
+        for (let x = 0; x < m[y].length; x++)
+          if (m[y][x]) { minX = Math.min(minX, x); maxX = Math.max(maxX, x); }
+      for (let x = -minX; x <= COLS - 1 - maxX; x++) {
+        const candidate = ratePlacement(m, x);
+        if (candidate && (!best || candidate.score > best.score)) best = { ...candidate, rotations };
+      }
+    }
+    m = rotateCW(m);
+  }
+  return best;
+}
+function queueBotTurn() {
+  clearTimeout(botTimer);
+  if (!botMode || !running || !current) return;
+  botTimer = setTimeout(() => {
+    const plan = chooseBotMove();
+    if (!plan || !current) return;
+    let remainingRotations = plan.rotations;
+    const act = () => {
+      if (!botMode || !running || !current) return;
+      if (remainingRotations > 0) {
+        rotate();
+        remainingRotations--;
+        botTimer = setTimeout(act, 60);
+      } else if (current.x !== plan.x) {
+        const before = current.x;
+        move(plan.x > current.x ? 1 : -1);
+        if (current.x === before) hardDrop();
+        else botTimer = setTimeout(act, 45);
+      } else {
+        hardDrop();
+      }
+    };
+    act();
+  }, 180);
 }
 function ghostY() {
   const m = matrixOf(current);
@@ -344,7 +435,9 @@ export function hasDailyRolledOver() {
   return mode === "daily" && seed !== dailySeed();
 }
 
-export function startGame() {
+export function startGame(isBot = false) {
+  clearTimeout(botTimer);
+  botMode = isBot;
   mode = "daily";
   seed = dailySeed();
   rng = mulberry32(seed);
@@ -364,7 +457,9 @@ function endGame() {
   gameOver = true;
   sfx.over();
   buzz(120);
-  const detail = { mode, seed, score, lines, level, pieces, durationMs: Date.now() - startTime };
+  const detail = { mode, seed, score, lines, level, pieces, durationMs: Date.now() - startTime, bot: botMode };
+  botMode = false;
+  clearTimeout(botTimer);
   window.dispatchEvent(new CustomEvent("gameover", { detail }));
 }
 function emitStats() {

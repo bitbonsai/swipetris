@@ -344,6 +344,14 @@ main { flex: 1; display: flex; min-height: 0; }
 .menu-title span:nth-child(9) { color: var(--c-O); text-shadow: 0 0 16px color-mix(in srgb, var(--c-O) 50%, transparent); }
 .overlay.menu { gap: 2rem; justify-content: safe center; padding-block: 3rem; }
 .overlay.menu .big { margin-top: 1.2rem; }
+.overlay.menu .bot-trigger {
+  margin-top: -1.25rem;
+  color: var(--accent);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
 .overlay.menu .hint { margin-top: 0.6rem; }
 .tagline { font-family: var(--pixel); text-transform: uppercase; opacity: 0.55; letter-spacing: 0.14em; font-size: clamp(9px, 2.4vw, 12px); margin-top: -0.6rem; }
 .hint { font-size: 0.68rem; opacity: 0.5; }

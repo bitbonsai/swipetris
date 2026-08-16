@@ -31,6 +31,7 @@
         gestureHint: false,
         settingsHintSeen: false,
         hintTimer: null,
+        isBot: false,
         score: 0, lines: 0, level: 1,
         name: (localStorage.getItem("swipetris-name") ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5),
         leaderboard: [],
@@ -70,6 +71,8 @@
           window.addEventListener("gameover", async (e) => {
             this.lastResult = e.detail;
             this.state = "over";
+            this.isBot = e.detail.bot;
+            if (e.detail.bot) this.name = "BOT";
             this.gestureHint = false;
             this.shared = false; this.submitted = false; this.submitting = false; this.submitError = "";
             this.newBest = e.detail.score > 0 && e.detail.score > this.best;
@@ -133,6 +136,7 @@
         play() {
           this.state = "playing";
           this.sheet = false;
+          this.isBot = false;
           this.beatDay = false;
           this.dayBest = 0;
           this.loadDayBest();
@@ -143,6 +147,12 @@
             clearTimeout(this.hintTimer);
             this.hintTimer = setTimeout(() => { this.gestureHint = false; }, 4200);
           }
+        },
+        watchBot() {
+          this.state = "playing";
+          this.sheet = false;
+          this.isBot = true;
+          startGame(true);
         },
         async share() {
           const r = this.lastResult;
@@ -232,6 +242,7 @@
           <div class="menu-title"><span>s</span><span>w</span><span>i</span><span>p</span><span>e</span><span>t</span><span>r</span><span>i</span><span>s</span></div>
           <p class="tagline">swipe. stack. repeat.</p>
           <button class="big" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY</span></button>
+          <button class="ghost bot-trigger" @click="watchBot()">WATCH BOT PLAY</button>
           <p class="menu-meta" x-show="best > 0">BEST <b x-text="best.toLocaleString()"></b></p>
           <p class="menu-meta dim">new daily in <span x-text="countdown"></span></p>
           <div class="gestures">
@@ -265,7 +276,7 @@
           <form x-show="!submitted" @submit.prevent="submitScore()">
             <input class="initials" x-model="name" @input="name = name.toUpperCase().replace(/[^A-Z0-9]/g, ''); submitError = ''"
               maxlength="5" placeholder="PLAYER" autocomplete="off" required>
-            <button type="submit" :disabled="submitting" x-text="submitting ? 'Saving…' : 'Save'">Save</button>
+            <button type="submit" :disabled="submitting" x-text="submitting ? 'SAVING...' : isBot ? 'SAVE BOT SCORE' : 'SAVE'">SAVE</button>
           </form>
           <p class="submit-error" x-cloak x-show="submitError" x-text="submitError" role="alert"></p>
           <div class="rank-chip" x-show="submitted" x-text="rankText + ' on the board'"></div>
