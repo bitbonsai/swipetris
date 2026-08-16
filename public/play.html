@@ -255,9 +255,6 @@
           </div>
         </div>
         <div id="hud-pops"></div>
-        <button id="bot-demo" x-show="state === 'menu'" x-transition @click="watchBot()" :disabled="botStarting" aria-label="Watch bot demo">
-          <span>BOT</span><small x-text="botStarting ? 'LOADING' : 'DEMO'">DEMO</small>
-        </button>
         <div id="settings-swipe-hint" x-cloak x-show="gestureHint && state === 'playing'" x-transition.opacity aria-live="polite">
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 18V6m0 0-5 5m5-5 5 5"/></svg>
           <span>SWIPE UP FOR SETTINGS</span>
@@ -286,6 +283,9 @@
           </div>
           <a class="about-link" href="/scores">daily scores</a>
           <a class="about-link" href="/about">what is swipetris?</a>
+          <button class="about-link bot-demo" @click="watchBot()" :disabled="botStarting">
+            <span x-text="botStarting ? 'loading bot...' : 'bot demo'">bot demo</span>
+          </button>
         </div>
 
         <div class="overlay over" x-show="state==='over'" x-transition>

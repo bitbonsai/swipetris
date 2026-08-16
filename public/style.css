@@ -159,28 +159,6 @@ main { flex: 1; display: flex; min-height: 0; }
 
 #hud-pops { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
 
-#bot-demo {
-  position: absolute;
-  top: 0.78rem;
-  left: 5.4rem;
-  z-index: 6;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.32rem;
-  padding: 0.36rem 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 58%, var(--border));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg) 76%, transparent);
-  color: var(--accent);
-  font: inherit;
-  cursor: pointer;
-}
-#bot-demo span { font-size: 0.58rem; font-weight: 800; letter-spacing: 0.1em; }
-#bot-demo small { font-size: 0.5rem; letter-spacing: 0.1em; opacity: 0.65; }
-#bot-demo:hover:not(:disabled) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
-#bot-demo:disabled { cursor: wait; opacity: 0.65; }
-#bot-demo:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
-
 /* text over a bottom gradient, mirroring the HUD's top gradient */
 #settings-swipe-hint {
   position: absolute;
@@ -390,6 +368,17 @@ main { flex: 1; display: flex; min-height: 0; }
   transition: border-color 0.15s, opacity 0.15s;
 }
 .about-link:hover { opacity: 1; border-color: var(--accent); }
+button.about-link.bot-demo {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 72%, transparent);
+  background: transparent;
+  cursor: pointer;
+}
+button.about-link.bot-demo:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+button.about-link.bot-demo:disabled { cursor: wait; opacity: 0.6; }
 
 /* animated gesture legend (ported from the landing) */
 .gestures { display: flex; gap: clamp(18px, 5vw, 40px); justify-content: center; }
