@@ -31,6 +31,8 @@
         gestureHint: false,
         settingsHintSeen: false,
         hintTimer: null,
+        isBot: false,
+        botStarting: false,
         score: 0, lines: 0, level: 1,
         name: (localStorage.getItem("swipetris-name") ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5),
         leaderboard: [],
@@ -70,6 +72,8 @@
           window.addEventListener("gameover", async (e) => {
             this.lastResult = e.detail;
             this.state = "over";
+            this.isBot = e.detail.bot;
+            if (e.detail.bot) this.name = "BOT";
             this.gestureHint = false;
             this.shared = false; this.submitted = false; this.submitting = false; this.submitError = "";
             this.newBest = e.detail.score > 0 && e.detail.score > this.best;
@@ -133,6 +137,7 @@
         play() {
           this.state = "playing";
           this.sheet = false;
+          this.isBot = false;
           this.beatDay = false;
           this.dayBest = 0;
           this.loadDayBest();
@@ -142,6 +147,31 @@
             this.gestureHint = true;
             clearTimeout(this.hintTimer);
             this.hintTimer = setTimeout(() => { this.gestureHint = false; }, 4200);
+          }
+        },
+        async watchBot() {
+          if (this.botStarting) return;
+          this.botStarting = true;
+          try {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const res = await fetch(`/api/leaderboard?mode=daily&seed=${dailySeed(yesterday)}`);
+            const rows = res.ok ? (await res.json()).leaderboard : [];
+            // Aim 10% below yesterday's fifth-place score. A short board gets
+            // its bottom score instead, so BOT remains a demo rather than a winner.
+            const cutoff = rows[4] ?? rows[rows.length - 1];
+            const scoreLimit = cutoff ? Math.floor(cutoff.score * 0.9) : 4_999;
+            this.state = "playing";
+            this.sheet = false;
+            this.isBot = true;
+            startGame(true, scoreLimit);
+          } catch {
+            this.state = "playing";
+            this.sheet = false;
+            this.isBot = true;
+            startGame(true, 4_999);
+          } finally {
+            this.botStarting = false;
           }
         },
         async share() {
@@ -210,7 +240,10 @@
         <div id="hud">
           <div class="hud-left">
             <b x-text="score.toLocaleString()">0</b>
-            <span><em x-text="lines">0</em> lines · lv <em x-text="level">1</em></span>
+            <div class="hud-meta">
+              <span><em x-text="lines">0</em> lines · lv <em x-text="level">1</em></span>
+              <span class="bot-label" x-show="isBot" x-transition>BOT</span>
+            </div>
           </div>
           <div class="hud-day" x-show="dayBest > 0" x-cloak>
             <span>DAY BEST</span>
@@ -250,6 +283,10 @@
           </div>
           <a class="about-link" href="/scores">daily scores</a>
           <a class="about-link" href="/about">what is swipetris?</a>
+          <button class="about-link bot-demo" @click="watchBot()" :disabled="botStarting">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg>
+            <span x-text="botStarting ? 'Loading bot...' : 'Demo Bot'">Demo Bot</span>
+          </button>
         </div>
 
         <div class="overlay over" x-show="state==='over'" x-transition>
@@ -265,7 +302,7 @@
           <form x-show="!submitted" @submit.prevent="submitScore()">
             <input class="initials" x-model="name" @input="name = name.toUpperCase().replace(/[^A-Z0-9]/g, ''); submitError = ''"
               maxlength="5" placeholder="PLAYER" autocomplete="off" required>
-            <button type="submit" :disabled="submitting" x-text="submitting ? 'Saving…' : 'Save'">Save</button>
+            <button type="submit" :disabled="submitting" x-text="submitting ? 'SAVING...' : isBot ? 'SAVE BOT SCORE' : 'SAVE'">SAVE</button>
           </form>
           <p class="submit-error" x-cloak x-show="submitError" x-text="submitError" role="alert"></p>
           <div class="rank-chip" x-show="submitted" x-text="rankText + ' on the board'"></div>
@@ -274,7 +311,7 @@
             <template x-for="(r, i) in leaderboard" :key="r.id">
               <li>
                 <span class="rank" :class="'r'+(i+1)" x-text="i+1"></span>
-                <span class="nm"><span x-text="r.name"></span><small class="cpu-badge" x-show="r.synthetic">CPU</small></span>
+                <span class="nm"><span x-text="r.name"></span><small class="cpu-badge" x-show="r.synthetic">CPU</small><small class="cpu-badge bot-score-badge" x-show="!r.synthetic && r.name === 'BOT'">BOT</small></span>
                 <b x-text="r.score.toLocaleString()"></b>
               </li>
             </template>

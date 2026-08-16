@@ -136,8 +136,19 @@ main { flex: 1; display: flex; min-height: 0; }
   color: var(--accent);
   text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
 }
+.hud-meta { display: flex; align-items: center; gap: 0.48rem; }
 .hud-left span {
   font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.6;
+}
+.hud-left .bot-label {
+  padding: 0.15rem 0.32rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  opacity: 1;
 }
 .hud-left em { font-style: normal; }
 .hud-next { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; justify-self: end; }
@@ -357,6 +368,22 @@ main { flex: 1; display: flex; min-height: 0; }
   transition: border-color 0.15s, opacity 0.15s;
 }
 .about-link:hover { opacity: 1; border-color: var(--accent); }
+button.about-link.bot-demo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 72%, transparent);
+  background: transparent;
+  cursor: pointer;
+}
+button.about-link.bot-demo svg { width: 0.95em; height: 0.95em; fill: currentColor; }
+button.about-link.bot-demo:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+button.about-link.bot-demo:disabled { cursor: wait; opacity: 0.6; }
 
 /* animated gesture legend (ported from the landing) */
 .gestures { display: flex; gap: clamp(18px, 5vw, 40px); justify-content: center; }
@@ -507,6 +534,7 @@ button.ghost:hover { opacity: 1; border-color: var(--accent); }
   flex: none; padding: 0.18rem 0.25rem; border: 1px solid currentColor; border-radius: 0.2rem;
   color: var(--dim); font-family: "JetBrains Mono", monospace; font-size: 0.5rem; line-height: 1; letter-spacing: 0.08em;
 }
+.bot-score-badge { color: var(--accent); }
 .board-list li {
   display: grid; grid-template-columns: 1.8rem 1fr auto;
   align-items: center; gap: 0.7rem;
