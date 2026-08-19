@@ -2,7 +2,7 @@
 
 People fill every gap in the day swiping feeds: waiting for a build, standing in a coffee line. That swiping happens anyway; it can land somewhere fun and free instead. Existing falling-block apps charge subscriptions to remove ads, sell coins, and track location. The game people actually want is one page, one thumb, zero strings.
 
-This project is also a working testbed for AI coding models: plan with one, build with another, polish with a third, and ship something real to judge them by.
+The project doubles as a working testbed for AI coding models. It started as a way to see whether deepseek-flash-v4 and Kimi K3 hold up against big-lab models like Fable and Sol, judged on a real shipped product instead of benchmarks. The split that emerged: plan with one model, build with another, polish with a third.
 
 # What
 
