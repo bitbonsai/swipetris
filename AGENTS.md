@@ -2,6 +2,8 @@
 
 Daily-challenge falling-blocks PWA. three.js game (`public/app.js`), Alpine UI (`public/play.html`), landing/about pages, Bun/Hono dev server (`src/`), prod on Cloudflare Pages + Pages Functions (`functions/api/`) + Turso. Live at swipetris.com.
 
+Specs: `PITCH.md` (why/what/done), `EXPERIENCE.md` (feel/principles), `ARCHITECTURE.md` (stack/security/unknowns). Plans: `.plans/` (active + queue in `INDEX.md`). Completed plans and decisions: `.archives/`.
+
 ## Commands
 
 - `bun run dev`: local server (game + API) on :3000. Needs `.env` with `TURSO_URL`/`TURSO_TOKEN` at repo root.
