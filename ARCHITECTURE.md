@@ -15,7 +15,7 @@ Philosophy follows the [Shibumi Stack](https://shibumistack.dev): small, readabl
 - Scores are untrusted client input: payload shape, daily seed, plausibility, timing, and submission rate validated before writes (`functions/api/_shared.js`)
 - Synthetic CPU rows (`synthetic = 1`) fill boards with fewer than three players after noon Europe/Amsterdam, and yield to real players
 - No secrets in the repo; `.env` local only, Turso token scoped to the one database
-- No PII: three-character initials are the only user-supplied identity
+- No PII: five-character initials are the only user-supplied identity
 
 # Unknowns
 

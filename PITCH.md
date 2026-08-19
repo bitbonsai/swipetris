@@ -6,7 +6,7 @@ The project doubles as a working testbed for AI coding models. It started as a w
 
 # What
 
-Swipetris: a mobile-first falling-blocks PWA with Wordle rules. One seeded piece sequence per day, the same for everyone, unlimited retries, only the best run counts. Drag to move, tap to rotate, flick to drop. Daily arcade leaderboard by three-letter initials. Free, open source, no ads, no accounts, no tracking.
+Swipetris: a mobile-first falling-blocks PWA with Wordle rules. One seeded piece sequence per day, the same for everyone, unlimited retries, only the best run counts. Drag to move, tap to rotate, flick to drop. Daily arcade leaderboard by five-letter initials. Free, open source, no ads, no accounts, no tracking.
 
 # Definition of done
 
