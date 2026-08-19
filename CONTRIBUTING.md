@@ -25,7 +25,13 @@ bunx wrangler pages dev public
 
 ## Testing
 
-There is not yet an automated test suite. Before submitting a PR:
+Run the automated test suite before submitting a PR:
+
+```sh
+bun test
+```
+
+Current automated coverage focuses on deterministic daily CPU benchmark generation and seeding rules. Also complete the relevant manual checks:
 
 - Start a game and verify drag, tap, flick, pause, game over, and replay using real pointer input.
 - Check the landing, play, about, and scores pages at mobile and desktop widths.

@@ -77,6 +77,14 @@ bun run dev
 
 > **Careful:** a Turso-backed local server writes to that remote database. Use a development database unless you intentionally want to write to production.
 
+## Run tests
+
+```sh
+bun test
+```
+
+Automated coverage currently focuses on deterministic daily CPU benchmark generation and seeding rules. Gameplay, pointer input, responsive layouts, and PWA behavior still require manual testing.
+
 ## Test the Pages deployment locally
 
 ```sh
