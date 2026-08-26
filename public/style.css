@@ -353,7 +353,7 @@ main { flex: 1; display: flex; min-height: 0; }
 .menu-title span:nth-child(7) { color: var(--c-L); text-shadow: 0 0 16px color-mix(in srgb, var(--c-L) 50%, transparent); }
 .menu-title span:nth-child(8) { color: var(--c-I); text-shadow: 0 0 16px color-mix(in srgb, var(--c-I) 55%, transparent); }
 .menu-title span:nth-child(9) { color: var(--c-O); text-shadow: 0 0 16px color-mix(in srgb, var(--c-O) 50%, transparent); }
-.overlay.menu { gap: 2rem; justify-content: safe center; padding-block: 3rem; }
+.overlay.menu { display: grid; place-items: center; place-content: safe center; gap: 2rem; padding-block: 3rem; }
 .overlay.menu .big { margin-top: 1.2rem; }
 .overlay.menu .hint { margin-top: 0.6rem; }
 .tagline { font-family: var(--pixel); text-transform: uppercase; opacity: 0.55; letter-spacing: 0.14em; font-size: clamp(9px, 2.4vw, 12px); margin-top: -0.6rem; }
