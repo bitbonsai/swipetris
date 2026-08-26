@@ -368,6 +368,13 @@ main { flex: 1; display: flex; min-height: 0; }
   transition: border-color 0.15s, opacity 0.15s;
 }
 .about-link:hover { opacity: 1; border-color: var(--accent); }
+.menu-links { display: flex; gap: 0.6rem; justify-content: center; align-items: stretch; }
+.menu-links .about-link {
+  font-size: 0.7rem;
+  padding: 0.65rem 0.85rem;
+  white-space: nowrap;
+}
+.menu-meta.version { font-size: clamp(8px, 2vw, 10px); opacity: 0.18; margin-top: 0.8rem; }
 button.about-link.bot-demo {
   display: inline-flex;
   align-items: center;
@@ -425,6 +432,7 @@ button.about-link.bot-demo:disabled { cursor: wait; opacity: 0.6; }
   color: var(--accent);
 }
 .menu-meta.dim { color: var(--fg); opacity: 0.45; }
+.menu-meta.today { color: var(--c-L, #fb923c); text-shadow: 0 0 12px color-mix(in srgb, var(--c-L, #fb923c) 55%, transparent); }
 .new-best {
   font-family: var(--pixel); font-size: 0.75rem; letter-spacing: 0.12em;
   color: var(--c-O, var(--accent));
