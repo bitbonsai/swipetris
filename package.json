@@ -1,6 +1,6 @@
 {
   "name": "swipetris",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "A gesture-first, daily-challenge falling-blocks PWA.",
   "license": "MIT",
@@ -16,7 +16,8 @@
     "dev": "bun --hot src/server.ts",
     "start": "bun src/server.ts",
     "test": "bun test",
-    "generate:brand": "bun scripts/render-brand.ts"
+    "generate:brand": "bun scripts/render-brand.ts",
+    "sync:version": "bun scripts/sync-version.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

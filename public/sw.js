@@ -1,4 +1,4 @@
-const CACHE = "swipetris-v37";
+const CACHE = "swipetris-v38";
 const ASSETS = ["/", "/index.html", "/landing.css", "/landing.js", "/bg.js", "/play", "/play.html", "/about", "/about.html", "/scores", "/scores.html", "/scores.js", "/style.css", "/app.js", "/manifest.json", "/icon.svg", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png", "/qr.svg", "/fonts/press-start-2p-latin-400-normal.woff2", "/fonts/jetbrains-mono-latin-400-normal.woff2", "/fonts/jetbrains-mono-latin-700-normal.woff2", "/fonts/jetbrains-mono-latin-800-normal.woff2", "/vendor/alpinejs.esm.js", "/vendor/three.module.min.js", "/vendor/three.core.min.js", "/vendor/RoundedBoxGeometry.js"];
 
 self.addEventListener("install", (e) => {
