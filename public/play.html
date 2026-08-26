@@ -18,7 +18,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/style.css?v=87a048139f62">
+  <link rel="stylesheet" href="/style.css?v=a1b65b9cb912">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
     import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=2df83a344c29";
@@ -267,7 +267,7 @@
           <p class="tagline">swipe. stack. repeat.</p>
           <button class="big" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY</span></button>
           <p class="menu-meta" x-show="best > 0">YOUR BEST: <b x-text="best.toLocaleString()"></b></p>
-          <p class="menu-meta today" :class="{invisible: !dayBest}">TODAY'S BEST: <b x-text="dayBest.toLocaleString()"></b></p>
+          <p class="menu-meta today" :class="{loaded: dayBest > 0}">TODAY'S BEST: <b x-text="dayBest.toLocaleString()"></b></p>
           <p class="menu-meta dim">new daily in <span x-text="countdown"></span></p>
           <div class="gestures">
             <div class="gesture">

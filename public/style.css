@@ -432,8 +432,13 @@ button.about-link.bot-demo:disabled { cursor: wait; opacity: 0.6; }
   color: var(--accent);
 }
 .menu-meta.dim { color: var(--fg); opacity: 0.45; }
-.menu-meta.today { color: var(--c-L, #fb923c); text-shadow: 0 0 12px color-mix(in srgb, var(--c-L, #fb923c) 55%, transparent); }
-.menu-meta.today.invisible { visibility: hidden; }
+.menu-meta.today {
+  color: var(--c-L, #fb923c);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--c-L, #fb923c) 55%, transparent);
+  opacity: 0; /* slot stays reserved while the leaderboard fetch is in flight */
+  transition: opacity 0.45s ease-in;
+}
+.menu-meta.today.loaded { opacity: 1; }
 .new-best {
   font-family: var(--pixel); font-size: 0.75rem; letter-spacing: 0.12em;
   color: var(--c-O, var(--accent));
