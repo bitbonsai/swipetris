@@ -788,26 +788,22 @@ export function drawLogo() {
 
 // ---------- input ----------
 function initInput(el) {
-  let start = null, gestureAxis = null, movedX = 0, softDropping = false, lastDropY = 0;
+  let start = null, vLock = false, movedX = 0, softDropping = false, lastDropY = 0;
   const cellPx = () => el.clientWidth / COLS;
-  const lockGestureAxis = (dx, dy) => {
-    if (gestureAxis || Math.hypot(dx, dy) < cellPx() * 0.3) return;
-    if (Math.abs(dy) > Math.abs(dx) * 1.15) gestureAxis = "vertical";
-    else if (Math.abs(dx) > Math.abs(dy) * 1.15) gestureAxis = "horizontal";
-  };
 
   el.addEventListener("pointerdown", (e) => {
     // overlays and the settings sheet live inside el; don't steal their clicks
     if (!running || paused || e.target.closest("#sheet, #sheet-backdrop")) return;
     el.setPointerCapture(e.pointerId);
     start = { x: e.clientX, y: e.clientY, t: performance.now() };
-    gestureAxis = null; movedX = 0; softDropping = false;
+    vLock = false; movedX = 0; softDropping = false;
   });
   el.addEventListener("pointermove", (e) => {
     if (!start || !running) return;
     const dx = e.clientX - start.x, dy = e.clientY - start.y;
-    lockGestureAxis(dx, dy);
-    if (gestureAxis === "horizontal") {
+    // downward intent: hold the column for the rest of the gesture
+    if (!vLock && dy > cellPx() * 0.5 && dy > Math.abs(dx) * 1.4) vLock = true;
+    if (!vLock) {
       const cells = Math.trunc(dx / (cellPx() * 0.9));
       if (cells !== movedX) {
         const step = cells > movedX ? 1 : -1;
@@ -815,7 +811,7 @@ function initInput(el) {
       }
     }
     // drag down = soft drop, one row per ~0.8 cell of travel
-    if (gestureAxis === "vertical" && !softDropping && dy > cellPx() * 1.2) {
+    if (!softDropping && dy > cellPx() * 1.2 && Math.abs(dx) < cellPx()) {
       softDropping = true;
       lastDropY = e.clientY;
     }
@@ -832,16 +828,15 @@ function initInput(el) {
     const dx = e.clientX - start.x, dy = e.clientY - start.y;
     const dt = performance.now() - start.t;
     const adx = Math.abs(dx), ady = Math.abs(dy);
-    lockGestureAxis(dx, dy);
     if (running) {
       if (dt < 220 && adx < 12 && ady < 12) rotate();             // tap
-      else if (gestureAxis === "vertical" && dy < -40 && dt < 350) {
+      else if (dy < -40 && ady > adx * 1.4 && dt < 350) {
         window.dispatchEvent(new CustomEvent("settings"));         // fast swipe up
-      } else if (gestureAxis === "vertical" && dy > 40 && dt < 300) hardDrop(); // fast swipe down
+      } else if (dy > 40 && ady > adx * 1.4 && dt < 300) hardDrop(); // fast swipe down
     }
-    start = null; gestureAxis = null; softDropping = false;
+    start = null; vLock = false; softDropping = false;
   });
-  el.addEventListener("pointercancel", () => { start = null; gestureAxis = null; softDropping = false; });
+  el.addEventListener("pointercancel", () => { start = null; vLock = false; softDropping = false; });
 
   window.addEventListener("keydown", (e) => {
     if (!running) return;
