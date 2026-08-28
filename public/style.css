@@ -356,6 +356,13 @@ main { flex: 1; display: flex; min-height: 0; }
 .overlay.menu { display: grid; place-items: center; place-content: safe center; gap: 2rem; padding-block: 3rem; }
 .overlay.menu .big { margin-top: 1.2rem; }
 .overlay.menu .hint { margin-top: 0.6rem; }
+/* short phones: tighten the stack so the menu fits and stays truly centered
+   (otherwise `safe center` pegs it to the top once it overflows) */
+@media (max-height: 740px) {
+  .overlay.menu { gap: 1.05rem; padding-block: 1.25rem; }
+  .overlay.menu .big { margin-top: 0.7rem; }
+  .menu-meta { margin-top: -0.35rem; }
+}
 .tagline { font-family: var(--pixel); text-transform: uppercase; opacity: 0.55; letter-spacing: 0.14em; font-size: clamp(9px, 2.4vw, 12px); margin-top: -0.6rem; }
 .hint { font-size: 0.68rem; opacity: 0.5; }
 .about-link {
