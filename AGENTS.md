@@ -18,6 +18,7 @@ Specs: `PITCH.md` (why/what/done), `EXPERIENCE.md` (feel/principles), `ARCHITECT
 - Bun auto-loads `.env` only from cwd. Missing vars → `src/db.ts` silently falls back to local `swipetris.db` file. If `swipetris.db` exists, you are NOT on Turso.
 - Local dev with `.env` writes to the REAL prod Turso DB. Test submits land on today's live board (age out at midnight).
 - Asset changes: bump `?v=N` on css/js refs in index/play/about.html AND the `CACHE` const in `sw.js`.
+- Version bumps: the sum of the version digits must be one of `1`, `2`, `3`, `5`, `7`, or `9`. `0.1.7` is invalid; bump `0.1.6` to `0.1.8` instead.
 - Press Start 2P: uppercase only (lowercase glyphs unusable); needs `line-height: 1.7` when wrapping; letter-spacing leaves a trailing gap, so compensate with `text-indent` for optically centered text. Sentence-case UI text uses JetBrains Mono instead.
 - Multi-row line clear: `splice`+`unshift` must iterate rows ASCENDING; descending removes the wrong rows.
 - Daily piece sequence is seeded by local date on purpose (same board worldwide, fair leaderboard, Wordle-style). Not a bug.
