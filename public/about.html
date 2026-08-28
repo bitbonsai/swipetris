@@ -40,8 +40,8 @@
     }
     .about-cta { text-align: center; padding: 34px 0 10px; }
     .about-cta .cta { margin-top: 0; }
-    .back { display: block; text-align: center; margin-top: 22px; font-size: 12px; color: var(--dim); }
-    .back a { color: var(--cyan); text-decoration: none; border-bottom: 1px dashed color-mix(in srgb, var(--cyan) 55%, transparent); }
+    .about-links { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
+    .about-links .cta-ghost { padding: 14px 16px; font-size: 9px; }
   </style>
 </head>
 <body>
@@ -63,26 +63,26 @@
       <article class="card">
         <span class="piece-icon icon-T"><i></i><i></i><i></i><i></i></span>
         <h3>built for your thumb</h3>
-        <p>Falling blocks with no buttons and no d-pad. Drag to move, tap to rotate, flick down to slam. The whole game is one gesture away from your thumb&rsquo;s resting position.</p>
+        <p>No buttons. No d-pad. Drag to move, tap to rotate, flick down to slam. Everything happens under your thumb.</p>
       </article>
 
       <article class="card">
         <span class="piece-icon icon-I"><i></i><i></i><i></i><i></i></span>
         <h3>one board a day</h3>
-        <p>Think Wordle, but with blocks instead of words. Every midnight you get a fresh sequence of pieces, and it&rsquo;s the <em>same sequence for every player on earth</em>. The leaderboard is a fair fight: same board, best thumb wins.</p>
-        <p>Replay as much as you want. Only your best run counts, under your five arcade letters.</p>
+        <p>Every midnight brings a fresh sequence of pieces. It&rsquo;s the <em>same sequence for every player on earth</em>. Same board. Best thumb wins.</p>
+        <p>Replay as much as you want. Only your best run counts, under five arcade letters.</p>
       </article>
 
       <article class="card">
         <span class="piece-icon icon-O"><i></i><i></i><i></i><i></i></span>
         <h3>free. actually free. for real.</h3>
-        <p>No ads, no account, no coins, no tracking. The game lives on your phone and works offline: airplane mode, subway, anywhere. Only leaderboard requests and score submissions send game data to a server.</p>
+        <p>No ads, no account, no coins, no tracking. The game is cached on your phone, so it works in airplane mode and on the subway. Only leaderboard requests and score submissions send game data to a server.</p>
       </article>
 
       <article class="card">
         <span class="piece-icon icon-J"><i></i><i></i><i></i><i></i></span>
         <h3>made by an arcade kid</h3>
-        <p>I&rsquo;m Mauricio, the person behind <a href="https://bitbonsai.com">bitbonsai</a>. I grew up in the arcades of the 1980s and wanted the directness of those games on my phone: learn the controls, chase a score, try again&mdash;without turning the game into a funnel.</p>
+        <p>I&rsquo;m Mauricio, the person behind <a href="https://bitbonsai.com">bitbonsai</a>. I grew up in 1980s arcades. I wanted that directness on my phone: learn the controls, chase a score, try again. No funnel attached.</p>
         <p>Swipetris is independent and <a href="https://github.com/bitbonsai/swipetris">open source on GitHub</a>.</p>
       </article>
 
@@ -91,17 +91,20 @@
         <h3>put it on your home screen</h3>
         <p>iPhone: <b>SHARE</b> &rarr; <b>ADD TO HOME SCREEN</b></p>
         <p>Android: <b>&#8942; MENU</b> &rarr; <b>ADD TO HOME SCREEN</b></p>
-        <p>It installs like a real app: its own icon, full screen, instant launch.</p>
+        <p>Once installed, it gets its own icon and opens full screen.</p>
       </article>
     </div>
 
     <div class="about-cta">
       <a class="cta" href="/play#go"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY</span></a>
-      <p class="back">curious for more? <a href="/scores">see daily scores</a> &middot; <a href="/">see the full tour</a></p>
+      <div class="about-links">
+        <a class="cta-ghost" href="/">HOME</a>
+        <a class="cta-ghost" href="/scores">LEADERBOARD</a>
+      </div>
     </div>
   </main>
 
-  <script type="module" src="/bg.js?v=14"></script>
+  <script type="module" src="/bg.js?v=15"></script>
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
       navigator.serviceWorker.register("/sw.js?v=23", { updateViaCache: "none" });

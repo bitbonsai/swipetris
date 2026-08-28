@@ -33,5 +33,5 @@ if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     }
     bg.appendChild(p);
   }
-  document.body.appendChild(bg);
+  (document.querySelector("[data-tetris-background]") || document.body).appendChild(bg);
 }

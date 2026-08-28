@@ -60,7 +60,37 @@ body.theme-crt {
   --bg: #020604; --accent: #33ff66; --accent2: #33ff66;
 }
 
-#app { height: 100dvh; display: flex; flex-direction: column; }
+#app { position: relative; z-index: 1; height: 100dvh; display: flex; flex-direction: column; }
+
+/* Ambient tetrominoes, shared with the landing and about pages. */
+.tetris-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  filter: blur(5px);
+  opacity: 0.13;
+}
+.bg-piece {
+  position: absolute;
+  top: -20vh;
+  left: var(--x);
+  display: grid;
+  gap: 3px;
+  grid-auto-columns: var(--cell);
+  grid-auto-rows: var(--cell);
+  animation: bgFall var(--dur) linear var(--delay) infinite;
+}
+.bg-piece i {
+  background: var(--col);
+  border-radius: 4px;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+}
+@keyframes bgFall {
+  from { transform: translateY(0) rotate(0deg); }
+  to { transform: translateY(145vh) rotate(var(--rot)); }
+}
 
 /* ---------- header ---------- */
 header {
@@ -355,24 +385,83 @@ main { flex: 1; display: flex; min-height: 0; }
 .menu-title span:nth-child(7) { color: var(--c-L); text-shadow: 0 0 16px color-mix(in srgb, var(--c-L) 50%, transparent); }
 .menu-title span:nth-child(8) { color: var(--c-I); text-shadow: 0 0 16px color-mix(in srgb, var(--c-I) 55%, transparent); }
 .menu-title span:nth-child(9) { color: var(--c-O); text-shadow: 0 0 16px color-mix(in srgb, var(--c-O) 50%, transparent); }
+/* Four screen zones: identity, scores, how-to, then thumb-reach actions.
+   Scores own the space between the logo and the daily prompt instead of
+   being tied to either one. */
 .overlay.menu {
   display: grid;
-  place-items: center;
-  /* `safe` is not supported on every iOS version. Center first so an
-     unsupported declaration does not leave the start screen top-aligned. */
-  place-content: center;
-  place-content: safe center;
-  gap: 2rem;
-  padding-block: 3rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: clamp(10rem, 22dvh, 12rem) clamp(4.5rem, 8dvh, 5.5rem) minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-areas:
+    "identity"
+    "scores"
+    "guide"
+    "actions";
+  justify-items: center;
+  align-items: center;
+  align-content: stretch;
+  width: 100%;
+  min-height: 0;
+  padding-block: calc(1.5rem + env(safe-area-inset-top)) calc(2rem + env(safe-area-inset-bottom));
+  isolation: isolate;
 }
-.overlay.menu .big { margin-top: 1.2rem; }
-.overlay.menu .hint { margin-top: 0.6rem; }
-/* short phones: tighten the stack so the menu fits and stays truly centered
-   (otherwise `safe center` pegs it to the top once it overflows) */
+/* This instance sits above the menu wash but behind its controls. */
+.overlay.menu .tetris-bg {
+  position: absolute;
+  z-index: 0;
+  filter: blur(6px);
+  opacity: 0.13;
+}
+.overlay.menu > :not(.tetris-bg) { position: relative; z-index: 1; }
+.menu-intro, .menu-guide, .menu-thumb-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.menu-intro {
+  grid-area: identity;
+  gap: 1rem;
+}
+.menu-scores {
+  grid-area: scores;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+  min-height: 2.75rem; /* the daily-score slot does not make the layout jump */
+}
+.menu-guide {
+  grid-area: guide;
+  gap: 1.25rem;
+}
+.menu-thumb-zone {
+  grid-area: actions;
+  align-self: start;
+  gap: 1rem;
+  padding-top: 0.75rem;
+}
+.menu-thumb-zone .big { margin: 0; }
+.menu-thumb-zone .menu-links { margin-top: 0.65rem; }
+/* Compact zones retain the same hierarchy on short phones. */
 @media (max-height: 740px) {
-  .overlay.menu { gap: 1.05rem; padding-block: 1.25rem; }
-  .overlay.menu .big { margin-top: 0.7rem; }
-  .menu-meta { margin-top: -0.35rem; }
+  .overlay.menu {
+    grid-template-rows: 10rem 4.5rem minmax(0, 1.2fr) minmax(0, 1fr);
+    padding-block: 1rem calc(1.5rem + env(safe-area-inset-bottom));
+  }
+  .menu-intro { gap: 0.65rem; }
+  .menu-guide { gap: 0.8rem; }
+  .menu-thumb-zone { gap: 0.7rem; padding-top: 0.5rem; }
+  .menu-thumb-zone .menu-links { margin-top: 0.4rem; }
+  .menu-scores { gap: 0.65rem; min-height: 2.15rem; }
+  .glyph { width: 46px; height: 46px; }
+  .gesture { gap: 7px; }
+}
+@media (max-height: 600px) {
+  .overlay.menu {
+    grid-template-rows: 8.25rem 3.75rem minmax(0, 1.2fr) minmax(0, 1fr);
+    padding-block: 0.75rem calc(1rem + env(safe-area-inset-bottom));
+  }
 }
 .tagline { font-family: var(--pixel); text-transform: uppercase; opacity: 0.55; letter-spacing: 0.14em; font-size: clamp(9px, 2.4vw, 12px); margin-top: -0.6rem; }
 .hint { font-size: 0.68rem; opacity: 0.5; }

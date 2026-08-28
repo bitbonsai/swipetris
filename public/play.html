@@ -18,7 +18,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/style.css?v=5b57a21d4db0">
+  <link rel="stylesheet" href="/style.css?v=f9149e8c8cf1">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
     import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=2df83a344c29";
@@ -261,36 +261,47 @@
           <span>SWIPE UP FOR SETTINGS</span>
         </div>
 
-        <div class="overlay menu" x-show="state==='menu'" x-transition>
-          <div class="brand-block" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-          <div class="menu-title"><span>s</span><span>w</span><span>i</span><span>p</span><span>e</span><span>t</span><span>r</span><span>i</span><span>s</span></div>
-          <p class="tagline">swipe. stack. repeat.</p>
-          <button class="big" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY</span></button>
-          <p class="menu-meta" x-show="best > 0">YOUR BEST: <b x-text="best.toLocaleString()"></b></p>
-          <p class="menu-meta today" :class="{loaded: dayBest > 0}">TODAY'S BEST: <b x-text="dayBest.toLocaleString()"></b></p>
-          <p class="menu-meta dim">new daily in <span x-text="countdown"></span></p>
-          <div class="gestures">
-            <div class="gesture">
-              <span class="glyph glyph-drag"><i></i></span>
-              <span class="g-label">drag<br><em>move</em></span>
-            </div>
-            <div class="gesture">
-              <span class="glyph glyph-tap"><i></i></span>
-              <span class="g-label">tap<br><em>rotate</em></span>
-            </div>
-            <div class="gesture">
-              <span class="glyph glyph-flick"><i></i></span>
-              <span class="g-label">flick<br><em>drop</em></span>
+        <div class="overlay menu" data-tetris-background x-show="state==='menu'" x-transition>
+          <div class="menu-intro">
+            <div class="brand-block" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div class="menu-title"><span>s</span><span>w</span><span>i</span><span>p</span><span>e</span><span>t</span><span>r</span><span>i</span><span>s</span></div>
+            <p class="tagline">swipe. stack. repeat.</p>
+          </div>
+
+          <div class="menu-scores">
+            <p class="menu-meta" x-show="best > 0">YOUR BEST: <b x-text="best.toLocaleString()"></b></p>
+            <p class="menu-meta today" :class="{loaded: dayBest > 0}">TODAY'S BEST: <b x-text="dayBest.toLocaleString()"></b></p>
+          </div>
+
+          <div class="menu-guide">
+            <p class="menu-meta dim">new daily in <span x-text="countdown"></span></p>
+            <div class="gestures">
+              <div class="gesture">
+                <span class="glyph glyph-drag"><i></i></span>
+                <span class="g-label">drag<br><em>move</em></span>
+              </div>
+              <div class="gesture">
+                <span class="glyph glyph-tap"><i></i></span>
+                <span class="g-label">tap<br><em>rotate</em></span>
+              </div>
+              <div class="gesture">
+                <span class="glyph glyph-flick"><i></i></span>
+                <span class="g-label">flick<br><em>drop</em></span>
+              </div>
             </div>
           </div>
-          <div class="menu-links">
-            <a class="about-link" href="/scores">leaderboard</a>
-            <a class="about-link" href="/about">about</a>
-            <button class="about-link bot-demo" @click="watchBot()" :disabled="botStarting">
-              <span x-text="botStarting ? 'loading bot...' : 'demo bot'">demo bot</span>
-            </button>
+
+          <div class="menu-thumb-zone">
+            <button class="big" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY</span></button>
+            <div class="menu-links">
+              <a class="about-link" href="/scores">leaderboard</a>
+              <a class="about-link" href="/about">about</a>
+              <button class="about-link bot-demo" @click="watchBot()" :disabled="botStarting">
+                <span x-text="botStarting ? 'loading bot...' : 'demo bot'">demo bot</span>
+              </button>
+            </div>
+            <p class="menu-meta dim version">v0.1.8</p>
           </div>
-          <p class="menu-meta dim version">v0.1.8</p>
         </div>
 
         <div class="overlay over" x-show="state==='over'" x-transition>
@@ -374,6 +385,7 @@
     </main>
   </div>
 
+  <script type="module" src="/bg.js?v=16"></script>
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
       navigator.serviceWorker.register("/sw.js?v=23", { updateViaCache: "none" });
