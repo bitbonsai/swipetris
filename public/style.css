@@ -313,6 +313,8 @@ main { flex: 1; display: flex; min-height: 0; }
   justify-content: safe center;
   overflow-y: auto;
   gap: 1.3rem; text-align: center;
+  /* plain rgba keeps the HUD dimmed on browsers without color-mix() */
+  background: rgba(15, 17, 21, 0.84);
   background: color-mix(in srgb, var(--bg) 84%, transparent);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   color: var(--fg); padding: 1rem;
@@ -353,7 +355,16 @@ main { flex: 1; display: flex; min-height: 0; }
 .menu-title span:nth-child(7) { color: var(--c-L); text-shadow: 0 0 16px color-mix(in srgb, var(--c-L) 50%, transparent); }
 .menu-title span:nth-child(8) { color: var(--c-I); text-shadow: 0 0 16px color-mix(in srgb, var(--c-I) 55%, transparent); }
 .menu-title span:nth-child(9) { color: var(--c-O); text-shadow: 0 0 16px color-mix(in srgb, var(--c-O) 50%, transparent); }
-.overlay.menu { display: grid; place-items: center; place-content: safe center; gap: 2rem; padding-block: 3rem; }
+.overlay.menu {
+  display: grid;
+  place-items: center;
+  /* `safe` is not supported on every iOS version. Center first so an
+     unsupported declaration does not leave the start screen top-aligned. */
+  place-content: center;
+  place-content: safe center;
+  gap: 2rem;
+  padding-block: 3rem;
+}
 .overlay.menu .big { margin-top: 1.2rem; }
 .overlay.menu .hint { margin-top: 0.6rem; }
 /* short phones: tighten the stack so the menu fits and stays truly centered
@@ -381,7 +392,7 @@ main { flex: 1; display: flex; min-height: 0; }
   padding: 0.65rem 0.85rem;
   white-space: nowrap;
 }
-.menu-meta.version { font-size: clamp(8px, 2vw, 10px); opacity: 0.18; margin-top: 0.8rem; }
+.menu-meta.version { font-size: clamp(8px, 2vw, 10px); opacity: 0.45; margin-top: 0.8rem; }
 button.about-link.bot-demo {
   display: inline-flex;
   align-items: center;
