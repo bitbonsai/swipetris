@@ -6,6 +6,7 @@ const COLS = 10;
 const ROWS = 20;
 const HIDDEN = 2; // buffer rows above visible board
 const TOTAL = ROWS + HIDDEN;
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const SHAPES = {
   I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
@@ -78,12 +79,14 @@ export function setTheme(name) {
 
 // ---------- rng ----------
 function mulberry32(a) {
-  return function () {
+  const random = () => {
     a |= 0; a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+  random.state = () => a;
+  return random;
 }
 export function dailySeed(date = new Date()) {
   // local date, so the daily rolls over at the player's midnight
@@ -141,19 +144,145 @@ function heartbeat(type) {
 
 // ---------- game state ----------
 let board, current, nextType, bag, rng, mode, seed;
-let score, lines, level, pieces, startTime, gameOver;
+let score, lines, level, pieces, gameOver;
 let dropAcc = 0, lastTick = 0, running = false;
 const LOCK_DELAY = 300;
+const RUN_KEY = "swipetris-run-v1";
 let lockAt = 0, lockResets = 0;
 let paused = false;
+let elapsedMs = 0, activeStartedAt = 0, saveTimer = null;
 let botMode = false, botTimer = null, botScoreLimit = Infinity, botRetiring = false;
+
+function activeDuration() {
+  return elapsedMs + (running && !paused ? Date.now() - activeStartedAt : 0);
+}
+
 export function setPaused(v) {
   if (paused === v) return;
+  const now = Date.now(), perfNow = performance.now();
+  if (running && v) elapsedMs += now - activeStartedAt;
   paused = v;
+  document.getElementById("game-wrap")?.classList.toggle("game-paused", paused);
   if (running && !v) {
-    if (lockAt) lockAt = performance.now(); // don't insta-lock after resume
+    activeStartedAt = now;
+    if (lockAt) lockAt = perfNow; // don't insta-lock after resume
     dropAcc = 0;
   }
+  if (clearing?.pausedAt && !v) {
+    clearing.start += perfNow - clearing.pausedAt;
+    clearing.pausedAt = 0;
+  } else if (clearing && v) {
+    clearing.pausedAt = perfNow;
+  }
+  if (quake?.pausedAt && !v) {
+    quake.start += perfNow - quake.pausedAt;
+    quake.pausedAt = 0;
+  } else if (quake && v) {
+    quake.pausedAt = perfNow;
+  }
+  if (effectPausedAt && !v) {
+    const pauseMs = perfNow - effectPausedAt;
+    if (shockwaveStart) shockwaveStart += pauseMs;
+    for (const fall of fallingMeshes) fall.start += pauseMs;
+  }
+  effectPausedAt = v ? perfNow : 0;
+  if (v) saveRun();
+}
+
+function validPiece(piece) {
+  return piece === null || (piece && TYPES.includes(piece.type) &&
+    Number.isInteger(piece.rot) && piece.rot >= 0 && piece.rot < 4 &&
+    Number.isInteger(piece.x) && Number.isInteger(piece.y));
+}
+
+function readSavedRun() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(RUN_KEY));
+    const validBoard = Array.isArray(saved?.board) && saved.board.length === TOTAL &&
+      saved.board.every((row) => Array.isArray(row) && row.length === COLS &&
+        row.every((cell) => cell === 0 || TYPES.includes(cell)));
+    if (saved?.v !== 1 || saved.seed !== dailySeed() || !validBoard ||
+        !validPiece(saved.current) || !TYPES.includes(saved.nextType) ||
+        !Array.isArray(saved.bag) || !saved.bag.every((type) => TYPES.includes(type)) ||
+        !Number.isInteger(saved.rngState) || !["score", "lines", "level", "pieces", "elapsedMs"].every((key) =>
+          Number.isFinite(saved[key]) && saved[key] >= 0) ||
+        (saved.pendingRows !== null && (!Array.isArray(saved.pendingRows) ||
+          !saved.pendingRows.every((row) => Number.isInteger(row) && row >= 0 && row < TOTAL)))) throw new Error("invalid run");
+    return saved;
+  } catch {
+    localStorage.removeItem(RUN_KEY);
+    return null;
+  }
+}
+
+export function getSavedRun() {
+  const saved = readSavedRun();
+  return saved ? { score: saved.score, lines: saved.lines, level: saved.level, savedAt: saved.savedAt } : null;
+}
+
+export function clearSavedRun() {
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  localStorage.removeItem(RUN_KEY);
+}
+
+function runSnapshot() {
+  const before = clearing?.before;
+  return {
+    v: 1,
+    seed,
+    mode,
+    board: (before?.board ?? board).map((row) => [...row]),
+    current: clearing ? null : (current ? { ...current } : null),
+    nextType,
+    bag: [...bag],
+    rngState: rng.state(),
+    score: before?.score ?? score,
+    lines: before?.lines ?? lines,
+    level: before?.level ?? level,
+    pieces,
+    elapsedMs: activeDuration(),
+    pendingRows: clearing ? [...clearing.rows] : null,
+    savedAt: Date.now(),
+  };
+}
+
+export function saveRun() {
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  if (!running || gameOver || botMode || !board || !rng) return null;
+  const snapshot = runSnapshot();
+  try { localStorage.setItem(RUN_KEY, JSON.stringify(snapshot)); } catch {}
+  return snapshot;
+}
+
+function queueSave() {
+  if (botMode || !running) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveRun, 120);
+}
+
+export function resumeSavedRun() {
+  const saved = readSavedRun();
+  if (!saved) return false;
+  clearVisualEffects();
+  mode = saved.mode;
+  seed = saved.seed;
+  board = saved.board.map((row) => [...row]);
+  current = saved.current ? { ...saved.current } : null;
+  nextType = saved.nextType;
+  bag = [...saved.bag];
+  rng = mulberry32(saved.rngState);
+  score = saved.score; lines = saved.lines; level = saved.level; pieces = saved.pieces;
+  elapsedMs = saved.elapsedMs; activeStartedAt = Date.now();
+  gameOver = false; botMode = false; botRetiring = false; running = true; paused = true;
+  lockAt = 0; lockResets = 0; dropAcc = 0; lastTick = performance.now(); clearing = null;
+  document.getElementById("game-wrap")?.classList.add("game-paused");
+  syncMeshes();
+  drawNext();
+  emitStats();
+  if (saved.pendingRows?.length) startClearAnim(saved.pendingRows);
+  return true;
 }
 
 function dailyOpeningType(date = new Date()) {
@@ -225,6 +354,7 @@ function move(dx) {
     resetLockDelay();
     sfx.move();
     syncMeshes();
+    queueSave();
   }
 }
 function rotate() {
@@ -237,6 +367,7 @@ function rotate() {
       resetLockDelay();
       sfx.rotate();
       syncMeshes();
+      queueSave();
       return;
     }
   }
@@ -250,6 +381,7 @@ function softDropStep() {
     heartbeat(current.type);
     syncMeshes();
     emitStats();
+    queueSave();
     return true;
   }
   return false; // grounded; lock delay takes over
@@ -432,35 +564,69 @@ function lockPiece(slam = false) {
   emitStats();
   if (topOut) { endGame(); return; }
   if (fullRows.length) {
-    // pause the piece flow, let the cleared rows flash & shrink first
+    // Hold the next piece until the clear and its celebration finish.
     current = null;
     syncMeshes();
     startClearAnim(fullRows);
   } else {
     spawn();
+    queueSave();
   }
 }
 
-// ---------- line-clear animation (mirrors the landing demo: glow, shrink, pop) ----------
-let clearing = null; // { rows, start, meshes }
+// ---------- line-clear celebrations ----------
+const CLEAR_TIMINGS = {
+  1: { collapse: 140, total: 420 },
+  2: { collapse: 150, total: 1050 },
+  3: { collapse: 165, total: 1500 },
+  4: { collapse: 180, total: 2400 },
+};
+let clearing = null;
+
+function clearTiming(count) {
+  if (!reducedMotion.matches) return CLEAR_TIMINGS[count];
+  return count === 1 ? { collapse: 180, total: 360 } : { collapse: 190, total: 650 + count * 100 };
+}
 
 function startClearAnim(rows) {
   const ys = new Set(rows.map((y) => TOTAL - 1 - y + 0.5));
   const meshes = [];
+  const sortedWorldRows = [...ys].sort((a, b) => a - b);
   for (const mesh of boardGroup.children)
     if (mesh.visible && ys.has(mesh.position.y)) {
-      mesh.material = mesh.material.clone(); // detach from cache so the glow stays local
-      mesh.material.emissiveIntensity = 0.9;
-      meshes.push(mesh);
+      const clearMaterial = new THREE.MeshBasicMaterial({ color: mesh.material.color });
+      mesh.geometry = clearPlaneGeo;
+      mesh.material = clearMaterial;
+      meshes.push({
+        mesh,
+        material: clearMaterial,
+        delay: reducedMotion.matches ? 0 : sortedWorldRows.indexOf(mesh.position.y) * 12,
+        duration: reducedMotion.matches ? 180 : 125,
+      });
     }
-  clearing = { rows, start: performance.now(), meshes };
-  flash();
+  const timing = clearTiming(rows.length);
+  clearing = {
+    rows: [...rows], start: performance.now(), meshes, ...timing, resolved: false, pausedAt: paused ? performance.now() : 0,
+    before: { board: board.map((row) => [...row]), score, lines, level },
+  };
+  if (rows.length > 1) flash(rows.length);
+  queueSave();
 }
 
-function finishClear() {
+function resolveClear() {
+  if (!clearing || clearing.resolved) return;
   const { rows } = clearing;
-  clearing = null;
-  // ascending: splice+unshift shifts indices, so lower rows must go first
+  const clearedRows = new Set(rows);
+  settleDrops = new Map();
+  if (!reducedMotion.matches) {
+    for (let y = 0; y < TOTAL; y++) {
+      if (clearedRows.has(y)) continue;
+      const drop = rows.filter((row) => row > y).length;
+      if (!drop) continue;
+      for (let x = 0; x < COLS; x++) if (board[y][x]) settleDrops.set(`${x},${y + drop}`, drop);
+    }
+  }
+  // Ascending: splice+unshift shifts indices, so lower rows must go first.
   for (const y of [...rows].sort((a, b) => a - b)) {
     board.splice(y, 1);
     board.unshift(new Array(COLS).fill(0));
@@ -472,13 +638,44 @@ function finishClear() {
   const newLevel = Math.floor(lines / 10) + 1;
   if (newLevel > level) sfx.levelup();
   level = newLevel;
+  clearing.resolved = true;
   shake(0.9 + cleared * 0.5);
   sfx.clear(cleared);
-  buzz(cleared > 1 ? 60 : 30);
-  popText(cleared === 1 ? `+${pts}` : ["", "", "DOUBLE!", "TRIPLE!", "TETRIS!"][cleared], cleared > 1 ? "big" : "");
+  buzz(cleared === 4 ? [70, 35, 90] : cleared > 1 ? 60 : 30);
+
+  if (cleared === 1) {
+    popText(`+${pts}`);
+  } else {
+    const label = ["", "", "DOUBLE!", "TRIPLE!", "TETRIS!"][cleared];
+    popText(label, `big clear-callout clear-${cleared}`, clearing.total - clearing.collapse);
+    shockwaveStart = performance.now();
+    if (cleared === 2) quake = { start: performance.now(), duration: 260, amp: 0.75 };
+    if (cleared === 3) {
+      quake = { start: performance.now(), duration: 440, amp: 1.25 };
+      burstParticles(rows, 30);
+    }
+    if (cleared === 4) {
+      quake = { start: performance.now(), duration: 1050, amp: 3.7 };
+      burstParticles(rows, 76);
+      const wrap = document.getElementById("game-wrap");
+      wrap?.classList.remove("tetris-impact");
+      void wrap?.offsetWidth;
+      wrap?.classList.add("tetris-impact");
+      setTimeout(() => wrap?.classList.remove("tetris-impact"), 1100);
+    }
+  }
+  for (const clear of clearing.meshes) clear.material.dispose();
+  syncMeshes();
   emitStats();
+}
+
+function finishClear() {
+  if (!clearing) return;
+  resolveClear();
+  clearing = null;
   dropAcc = 0;
   spawn();
+  queueSave();
 }
 function dropInterval() {
   return Math.max(60, 1000 * Math.pow(0.85, level - 1));
@@ -503,18 +700,24 @@ export function startGame(isBot = false, scoreLimit = Infinity) {
   board = Array.from({ length: TOTAL }, () => new Array(COLS).fill(0));
   clearing = null;
   score = 0; lines = 0; level = 1; pieces = 0; gameOver = false;
-  startTime = Date.now();
+  if (!isBot) clearSavedRun();
+  clearVisualEffects();
+  elapsedMs = 0; activeStartedAt = Date.now();
   dropAcc = 0; lastTick = performance.now();
-  running = true;
+  paused = false; running = true;
+  document.getElementById("game-wrap")?.classList.remove("game-paused");
   spawn();
   emitStats();
+  queueSave();
 }
 function endGame() {
+  const durationMs = activeDuration();
   running = false;
   gameOver = true;
   sfx.over();
   buzz(120);
-  const detail = { mode, seed, score, lines, level, pieces, durationMs: Date.now() - startTime, bot: botMode };
+  const detail = { mode, seed, score, lines, level, pieces, durationMs, bot: botMode };
+  if (!botMode) clearSavedRun();
   botMode = false;
   botRetiring = false;
   clearTimeout(botTimer);
@@ -525,10 +728,11 @@ function emitStats() {
 }
 
 // ---------- three.js scene ----------
-let scene, camera, renderer, boardGroup, ghostGroup, gridMat, playGroup;
+let scene, camera, renderer, boardGroup, ghostGroup, effectsGroup, gridMat, playGroup;
 let gridGeo, gridColorAttr;
 const _gridTmpColor = { c: null };
-let shakeAmp = 0;
+let shakeAmp = 0, quake = null, shockwaveStart = 0, effectPausedAt = 0, settleDrops = null;
+const celebrationParticles = [], fallingMeshes = [];
 const BASE_CAM_X = COLS / 2, BASE_CAM_Y = ROWS / 2 + 2.5;
 let fitZ = 24;
 
@@ -572,7 +776,8 @@ function initScene(container) {
 
   boardGroup = new THREE.Group();
   ghostGroup = new THREE.Group();
-  playGroup.add(boardGroup, ghostGroup);
+  effectsGroup = new THREE.Group();
+  playGroup.add(boardGroup, ghostGroup, effectsGroup);
   scene.add(playGroup);
 
   resize();
@@ -593,6 +798,8 @@ function resize() {
   camera.updateProjectionMatrix();
 }
 const blockGeo = new RoundedBoxGeometry(0.94, 0.94, 0.94, 2, 0.09);
+const clearPlaneGeo = new THREE.PlaneGeometry(0.9, 0.9);
+const particleGeo = new THREE.BoxGeometry(0.22, 0.22, 0.22);
 
 // vertical gradient: bright top -> darker bottom, multiplied with block color
 let gradTex = null;
@@ -630,11 +837,22 @@ function syncGroup(group, blocks) {
   while (group.children.length < blocks.length) group.add(new THREE.Mesh(blockGeo));
   group.children.forEach((mesh, i) => {
     const b = blocks[i];
+    for (let j = fallingMeshes.length - 1; j >= 0; j--)
+      if (fallingMeshes[j].mesh === mesh) fallingMeshes.splice(j, 1);
     if (b) {
       mesh.visible = true;
+      mesh.geometry = blockGeo;
       mesh.scale.setScalar(1);
       mesh.material = material(b.type, b.ghost);
-      mesh.position.set(b.x + 0.5, b.y + 0.5, 0);
+      const targetY = b.y + 0.5;
+      mesh.position.set(b.x + 0.5, targetY + (b.drop ?? 0), 0);
+      if (b.drop) fallingMeshes.push({
+        mesh,
+        fromY: targetY + b.drop,
+        toY: targetY,
+        start: performance.now(),
+        duration: 130 + b.drop * 32,
+      });
     } else {
       mesh.visible = false;
     }
@@ -648,7 +866,7 @@ function syncMeshes() {
   const solid = [], ghost = [];
   for (let y = 0; y < TOTAL; y++)
     for (let x = 0; x < COLS; x++)
-      if (board[y][x]) solid.push({ type: board[y][x], x, y: worldY(y) });
+      if (board[y][x]) solid.push({ type: board[y][x], x, y: worldY(y), drop: settleDrops?.get(`${x},${y}`) ?? 0 });
   if (running && current) {
     const m = matrixOf(current);
     const gy = ghostY();
@@ -662,36 +880,117 @@ function syncMeshes() {
         }
   }
   syncGroup(boardGroup, solid);
+  settleDrops = null;
   syncGroup(ghostGroup, ghost);
 }
 
-function shake(amp = 1) { shakeAmp = Math.max(shakeAmp, amp); }
+function clearVisualEffects() {
+  while (celebrationParticles.length) {
+    const particle = celebrationParticles.pop();
+    effectsGroup?.remove(particle.mesh);
+    particle.mesh.material.dispose();
+  }
+  quake = null;
+  shockwaveStart = 0;
+  settleDrops = null;
+  fallingMeshes.length = 0;
+  shakeAmp = 0;
+  document.getElementById("hud-pops")?.replaceChildren();
+  document.getElementById("game-wrap")?.classList.remove("tetris-impact");
+}
 
-function popText(text, cls = "") {
+function burstParticles(rows, count) {
+  if (reducedMotion.matches || !effectsGroup) return;
+  const tetris = rows.length === 4;
+  for (let i = 0; i < count; i++) {
+    const type = TYPES[Math.floor(Math.random() * TYPES.length)];
+    const material = new THREE.MeshBasicMaterial({ color: theme.colors[type], transparent: true });
+    const mesh = new THREE.Mesh(particleGeo, material);
+    const row = rows[Math.floor(Math.random() * rows.length)];
+    mesh.position.set(Math.random() * COLS, worldY(row) + 0.5, 0.3 + Math.random() * 0.8);
+    const side = mesh.position.x < COLS / 2 ? -1 : 1;
+    effectsGroup.add(mesh);
+    celebrationParticles.push({
+      mesh, age: 0, life: tetris ? 1.55 + Math.random() * 0.65 : 1 + Math.random() * 0.45,
+      vx: (Math.random() - 0.5) * (tetris ? 8 : 5) + (tetris ? side * 1.6 : 0),
+      vy: 4.5 + Math.random() * (tetris ? 8 : 5),
+      vz: (Math.random() - 0.5) * 3,
+      spin: (Math.random() - 0.5) * 12,
+    });
+  }
+}
+
+function updateFalls(now) {
+  if (paused) return;
+  for (let i = fallingMeshes.length - 1; i >= 0; i--) {
+    const fall = fallingMeshes[i];
+    const k = Math.max(0, Math.min(1, (now - fall.start) / fall.duration));
+    fall.mesh.position.y = fall.fromY + (fall.toY - fall.fromY) * k * k;
+    if (k >= 1) fallingMeshes.splice(i, 1);
+  }
+}
+
+function updateParticles(dt) {
+  if (paused) return;
+  for (let i = celebrationParticles.length - 1; i >= 0; i--) {
+    const p = celebrationParticles[i];
+    p.age += dt;
+    p.vy -= 9 * dt;
+    p.mesh.position.x += p.vx * dt;
+    p.mesh.position.y += p.vy * dt;
+    p.mesh.position.z += p.vz * dt;
+    p.mesh.rotation.x += p.spin * dt;
+    p.mesh.rotation.y += p.spin * 0.7 * dt;
+    p.mesh.material.opacity = Math.max(0, 1 - Math.pow(p.age / p.life, 3));
+    if (p.age >= p.life) {
+      effectsGroup.remove(p.mesh);
+      p.mesh.material.dispose();
+      celebrationParticles.splice(i, 1);
+    }
+  }
+}
+
+function shake(amp = 1) {
+  if (!reducedMotion.matches) shakeAmp = Math.max(shakeAmp, amp);
+}
+
+function popText(text, cls = "", duration = 900) {
   const box = document.getElementById("hud-pops");
   if (!box) return;
   const el = document.createElement("span");
   el.className = `hud-pop ${cls}`;
   el.textContent = text;
+  el.dataset.text = text;
+  el.style.setProperty("--pop-duration", `${duration}ms`);
   box.appendChild(el);
-  setTimeout(() => el.remove(), 950);
+  el.addEventListener("animationend", () => el.remove(), { once: true });
 }
 
-function flash() {
+function flash(cleared = 1) {
   const el = document.getElementById("clear-flash");
   if (!el) return;
-  el.classList.remove("on");
+  el.className = "";
   void el.offsetWidth;
   el.classList.add("on");
+  if (cleared === 4) el.classList.add("tetris");
+  else if (cleared === 3) el.classList.add("triple");
 }
 
 // main loop: gravity + camera shake
 function tick(now) {
   requestAnimationFrame(tick);
-  if (clearing) {
-    const k = Math.min(1, (now - clearing.start) / 320);
-    for (const mesh of clearing.meshes) mesh.scale.setScalar(Math.max(0.001, 1 - k * k));
-    if (k >= 1) finishClear();
+  const frameDt = Math.min(0.05, Math.max(0, (now - lastTick) / 1000));
+  if (clearing && !paused) {
+    const elapsed = now - clearing.start;
+    if (!clearing.resolved) {
+      for (const clear of clearing.meshes) {
+        const k = Math.max(0, Math.min(1, (elapsed - clear.delay) / clear.duration));
+        const eased = 1 - Math.pow(1 - k, 3);
+        clear.mesh.scale.setScalar(Math.max(0.001, 1 - eased));
+      }
+      if (elapsed >= clearing.collapse) resolveClear();
+    }
+    if (elapsed >= clearing.total) finishClear();
   }
   if (running && current && !paused) {
     dropAcc += now - lastTick;
@@ -711,19 +1010,29 @@ function tick(now) {
         current.y += 1;
         heartbeat(current.type);
         syncMeshes();
+        queueSave();
       }
     }
   }
+  updateFalls(now);
+  updateParticles(frameDt);
   lastTick = now;
 
   // camera shake + zoom punch
-  if (shakeAmp > 0.02) {
-    shakeAmp *= 0.87;
-    camera.position.x = BASE_CAM_X + (Math.random() - 0.5) * shakeAmp * 0.5;
-    camera.position.y = BASE_CAM_Y + (Math.random() - 0.5) * shakeAmp * 0.5;
-    camera.position.z = fitZ - shakeAmp * 0.45;
-  } else if (shakeAmp !== 0) {
-    shakeAmp = 0;
+  let quakeAmp = 0;
+  if (quake && !paused) {
+    const k = (now - quake.start) / quake.duration;
+    if (k >= 1) quake = null;
+    else quakeAmp = quake.amp * Math.pow(1 - Math.max(0, k), 1.7) * (0.72 + 0.28 * Math.sin(now * 0.055));
+  }
+  if (shakeAmp > 0.02) shakeAmp *= 0.87;
+  else shakeAmp = 0;
+  const cameraAmp = Math.max(shakeAmp, quakeAmp);
+  if (cameraAmp > 0.02) {
+    camera.position.x = BASE_CAM_X + (Math.random() - 0.5) * cameraAmp * 0.5;
+    camera.position.y = BASE_CAM_Y + (Math.random() - 0.5) * cameraAmp * 0.5;
+    camera.position.z = fitZ - cameraAmp * 0.45;
+  } else if (camera.position.x !== BASE_CAM_X || camera.position.y !== BASE_CAM_Y || camera.position.z !== fitZ) {
     camera.position.set(BASE_CAM_X, BASE_CAM_Y, fitZ);
   }
 
@@ -731,12 +1040,22 @@ function tick(now) {
   if (gridColorAttr && baseGridColor) {
     gridMat.opacity = 0.42 + 0.08 * Math.sin(now * 0.0011);
     const band = (((now * 0.00028) % 1) * (ROWS + 10)) - 5; // travels bottom -> top with a pause off-board
+    let shockY = -10, shockStrength = 0;
+    if (shockwaveStart && !paused) {
+      const age = now - shockwaveStart;
+      if (age > 950) shockwaveStart = 0;
+      else {
+        shockY = -2 + (age / 950) * (ROWS + 5);
+        shockStrength = 1 - age / 950;
+      }
+    }
     const pos = gridGeo.getAttribute("position");
     const c = _gridTmpColor.c;
     for (let i = 0; i < pos.count; i++) {
       const d = Math.abs(pos.getY(i) - band);
       const k = Math.max(0, 1 - d / 2.4);
-      c.copy(baseGridColor).lerp(accentColor, 0.1 + 0.55 * k * k);
+      const shock = Math.max(0, 1 - Math.abs(pos.getY(i) - shockY) / 1.6) * shockStrength;
+      c.copy(baseGridColor).lerp(accentColor, Math.min(1, 0.1 + 0.55 * k * k + 0.9 * shock));
       gridColorAttr.setXYZ(i, c.r, c.g, c.b);
     }
     gridColorAttr.needsUpdate = true;

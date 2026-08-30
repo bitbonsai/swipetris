@@ -18,10 +18,10 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/style.css?v=f9149e8c8cf1">
+  <link rel="stylesheet" href="/style.css?v=54">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
-    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver } from "/app.js?v=2df83a344c29";
+    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver, getSavedRun, resumeSavedRun, saveRun } from "/app.js?v=59";
 
     window.Alpine = Alpine;
     Alpine.data("ui", () => ({
@@ -41,6 +41,7 @@
         muted: localStorage.getItem("swipetris-muted") === "1",
         bestTick: 0, newBest: false, countdown: "", dayBest: 0, beatDay: false,
         rolloverTimer: null, refreshingDaily: false,
+        savedRun: getSavedRun(),
 
         get best() {
           this.bestTick;
@@ -51,7 +52,9 @@
           setTheme(this.theme);
           setMuted(this.muted);
           this.loadDayBest();
-          this.$watch("sheet", (open) => setPaused(open));
+          this.$watch("sheet", (open) => {
+            if (this.state === "playing") setPaused(open);
+          });
           const tickCountdown = () => {
             const now = new Date();
             const midnight = new Date(now);
@@ -64,14 +67,17 @@
           this.scheduleDailyRollover();
           window.addEventListener("online", () => this.refreshDaily());
           document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") this.refreshDaily();
+            if (document.visibilityState === "hidden") this.pauseForLater();
+            else this.refreshDaily();
           });
+          window.addEventListener("pagehide", () => this.pauseForLater());
           window.addEventListener("stats", (e) => {
             this.score = e.detail.score; this.lines = e.detail.lines; this.level = e.detail.level;
             if (!this.beatDay && this.dayBest > 0 && this.score > this.dayBest) this.beatDay = true;
           });
           window.addEventListener("gameover", async (e) => {
             this.lastResult = e.detail;
+            this.savedRun = e.detail.bot ? getSavedRun() : null;
             this.state = "over";
             this.isBot = e.detail.bot;
             if (e.detail.bot) this.name = "BOT";
@@ -89,7 +95,7 @@
             this.gestureHint = false;
           });
           // arriving from the landing CTA on a phone: skip the menu, straight into the game
-          if (location.hash === "#go" && window.matchMedia("(pointer: coarse)").matches) {
+          if (location.hash === "#go" && window.matchMedia("(pointer: coarse)").matches && !this.savedRun) {
             history.replaceState(null, "", "/play");
             this.play();
           }
@@ -110,7 +116,7 @@
             // The service worker never caches API calls: confirm the PWA is online
             // before discarding yesterday's in-progress board.
             const res = await fetch(`/api/leaderboard?mode=daily&seed=${dailySeed()}`, { cache: "no-store" });
-            if (res.ok && hasDailyRolledOver()) this.play();
+            if (res.ok && hasDailyRolledOver()) this.play(true);
           } catch {
             // Keep the existing board while offline; retry on reconnect or focus.
           } finally {
@@ -135,9 +141,11 @@
           localStorage.setItem("swipetris-theme", t);
           setTheme(t);
         },
-        play() {
+        play(force = false) {
+          if (!force && this.savedRun && !confirm("Start over and replace your saved run?")) return;
           this.state = "playing";
           this.sheet = false;
+          this.savedRun = null;
           this.isBot = false;
           this.beatDay = false;
           this.dayBest = 0;
@@ -149,6 +157,29 @@
             clearTimeout(this.hintTimer);
             this.hintTimer = setTimeout(() => { this.gestureHint = false; }, 4200);
           }
+        },
+        pauseForLater() {
+          if (this.state !== "playing" || this.isBot) return;
+          setPaused(true);
+          saveRun();
+          this.savedRun = getSavedRun();
+          this.state = "paused";
+          this.sheet = false;
+          this.gestureHint = false;
+        },
+        continueRun() {
+          if (!resumeSavedRun()) {
+            this.savedRun = null;
+            this.state = "menu";
+            return;
+          }
+          this.state = "playing";
+          this.sheet = false;
+          this.isBot = false;
+          this.beatDay = false;
+          this.dayBest = 0;
+          this.loadDayBest();
+          setPaused(false);
         },
         async watchBot() {
           if (this.botStarting) return;
@@ -292,7 +323,10 @@
           </div>
 
           <div class="menu-thumb-zone">
-            <button class="big" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY</span></button>
+            <button class="big" x-show="!savedRun" @click="play()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>PLAY</span></button>
+            <button class="big continue-run" x-show="savedRun" @click="continueRun()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>CONTINUE</span></button>
+            <p class="resume-meta" x-cloak x-show="savedRun"><b x-text="savedRun ? savedRun.score.toLocaleString() : 0"></b> PTS · LV <b x-text="savedRun ? savedRun.level : 1"></b></p>
+            <button class="start-over" x-cloak x-show="savedRun" @click="play()">start over</button>
             <div class="menu-links">
               <a class="about-link" href="/scores">leaderboard</a>
               <a class="about-link" href="/about">about</a>
@@ -300,8 +334,16 @@
                 <span x-text="botStarting ? 'loading bot...' : 'demo bot'">demo bot</span>
               </button>
             </div>
-            <p class="menu-meta dim version">v0.1.8</p>
+            <p class="menu-meta dim version">v0.2.1</p>
           </div>
+        </div>
+
+        <div class="overlay paused-screen" x-cloak x-show="state==='paused'" x-transition.opacity>
+          <div class="pause-glyph" aria-hidden="true"><i></i><i></i></div>
+          <span class="paused-title">PAUSED</span>
+          <p class="paused-score"><b x-text="savedRun ? savedRun.score.toLocaleString() : score.toLocaleString()"></b> PTS · LV <b x-text="savedRun ? savedRun.level : level"></b></p>
+          <button class="big" @click="continueRun()"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span>CONTINUE</span></button>
+          <p class="saved-note">RUN SAVED<br><span>SAFE TO CLOSE</span></p>
         </div>
 
         <div class="overlay over" x-show="state==='over'" x-transition>
@@ -385,7 +427,7 @@
     </main>
   </div>
 
-  <script type="module" src="/bg.js?v=16"></script>
+  <script type="module" src="/bg.js?v=17"></script>
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") {
       navigator.serviceWorker.register("/sw.js?v=23", { updateViaCache: "none" });
