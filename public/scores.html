@@ -89,5 +89,11 @@
   <script>
     if ("serviceWorker" in navigator && location.hostname !== "localhost") navigator.serviceWorker.register("/sw.js?v=23", { updateViaCache: "none" });
   </script>
+  <script>
+    // Phones skip the marketing landing: HOME means the game start page.
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      document.querySelectorAll('a[href="/"]').forEach((a) => (a.href = "/play"));
+    }
+  </script>
 </body>
 </html>
