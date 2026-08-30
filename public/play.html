@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="/style.css?v=54">
   <script type="module">
     import Alpine from "/vendor/alpinejs.esm.js";
-    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver, getSavedRun, resumeSavedRun, saveRun } from "/app.js?v=59";
+    import { boot, startGame, setTheme, setMuted, setPaused, dailySeed, hasDailyRolledOver, getSavedRun, resumeSavedRun, saveRun } from "/app.js?v=61";
 
     window.Alpine = Alpine;
     Alpine.data("ui", () => ({
@@ -334,7 +334,7 @@
                 <span x-text="botStarting ? 'loading bot...' : 'demo bot'">demo bot</span>
               </button>
             </div>
-            <p class="menu-meta dim version">v0.2.1</p>
+            <p class="menu-meta dim version">v0.2.3</p>
           </div>
         </div>
 

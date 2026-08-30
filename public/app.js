@@ -769,9 +769,9 @@ function initScene(container) {
   gridMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.45 });
   _gridTmpColor.c = new THREE.Color();
 
-  // everything board-related lives here; shifted down to reclaim top space for HUD
+  // Keep the spawn row below the HUD so the active piece stays visible on a tall stack.
   playGroup = new THREE.Group();
-  playGroup.position.y = -0.9;
+  playGroup.position.y = -1.35;
   playGroup.add(new THREE.LineSegments(gridGeo, gridMat));
 
   boardGroup = new THREE.Group();

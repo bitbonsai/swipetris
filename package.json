@@ -1,6 +1,6 @@
 {
   "name": "swipetris",
-  "version": "0.1.8",
+  "version": "0.2.3",
   "private": true,
   "description": "A gesture-first, daily-challenge falling-blocks PWA.",
   "license": "MIT",
